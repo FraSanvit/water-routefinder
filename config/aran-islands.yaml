@@ -1,0 +1,25 @@
+# Aran Islands ferry network (Rossaveal + Doolin -> Inishmore/Inishmaan/Inisheer), live
+# Copernicus Marine data. Harbours/routes are approximate -- see the message that created them.
+# Run with: pixi run snakemake --snakefile workflow/Snakefile --configfile config/aran-islands.yaml --cores 1
+
+networks: ["aran-islands"]
+
+time:
+  start: "2024-01-01"
+  end: "2024-01-08" # exclusive -- one week
+
+sample:
+  densify_km: 1.5
+
+harmonise:
+  target_step: "1h"
+
+bbox:
+  margin_deg: 0.1
+
+cache_dir: "resources/automatic/.cache"
+
+sources:
+  current: { provider: cmems, dataset_id: null, variables: [uo, vo] }
+  wave: { provider: cmems, dataset_id: null, variables: [VHM0, VMDR, VTM10] }
+  wind: { provider: cmems, dataset_id: null, variables: [eastward_wind, northward_wind] }

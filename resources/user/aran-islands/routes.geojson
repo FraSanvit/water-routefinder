@@ -1,0 +1,108 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "route_id": "RSV-KIL",
+        "origin": "RSV",
+        "destination": "KIL",
+        "name": "Rossaveal - Kilronan (Inishmore)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-9.5511, 53.2708],
+          [-9.6097, 53.1978],
+          [-9.6683, 53.1247]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route_id": "RSV-INN",
+        "origin": "RSV",
+        "destination": "INN",
+        "name": "Rossaveal - Inishmaan"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-9.5511, 53.2708],
+          [-9.5617, 53.1819],
+          [-9.5722, 53.0930]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route_id": "RSV-INR",
+        "origin": "RSV",
+        "destination": "INR",
+        "name": "Rossaveal - Inisheer"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-9.5511, 53.2708],
+          [-9.5345, 53.1667],
+          [-9.5178, 53.0625]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route_id": "DLN-INR",
+        "origin": "DLN",
+        "destination": "INR",
+        "name": "Doolin - Inisheer"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-9.3855, 53.0198],
+          [-9.4517, 53.0412],
+          [-9.5178, 53.0625]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route_id": "DLN-INN",
+        "origin": "DLN",
+        "destination": "INN",
+        "name": "Doolin - Inishmaan"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-9.3855, 53.0198],
+          [-9.4450, 53.0850],
+          [-9.5722, 53.0930]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route_id": "DLN-KIL",
+        "origin": "DLN",
+        "destination": "KIL",
+        "name": "Doolin - Kilronan (Inishmore)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-9.3855, 53.0198],
+          [-9.4600, 53.0950],
+          [-9.5500, 53.1300],
+          [-9.6683, 53.1247]
+        ]
+      }
+    }
+  ]
+}

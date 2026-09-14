@@ -1,0 +1,42 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "route_id": "DCC-DUN",
+        "origin": "DCC",
+        "destination": "DUN",
+        "name": "City Quay - Dun Laoghaire",
+        "n_segments": 12
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-6.2431, 53.3467],
+          [-6.1980, 53.3450],
+          [-6.1550, 53.3200],
+          [-6.1345, 53.2954]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route_id": "DCC-HOW",
+        "origin": "DCC",
+        "destination": "HOW",
+        "name": "City Quay - Howth"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-6.2431, 53.3467],
+          [-6.1900, 53.3500],
+          [-6.1200, 53.3750],
+          [-6.0680, 53.3915]
+        ]
+      }
+    }
+  ]
+}
