@@ -1,0 +1,9 @@
+# Normalize line endings to LF everywhere -- checked out identically on Windows/macOS/Linux.
+# Without this, git's line-ending conversion can silently change the bytes of files whose
+# sha256 is part of the bundle contract (network_ref in provenance.py) between platforms.
+* text=auto eol=lf
+
+# Binary formats: never touch line endings, never diff as text.
+*.parquet binary
+*.png binary
+*.pyc binary

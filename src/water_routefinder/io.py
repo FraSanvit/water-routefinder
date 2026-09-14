@@ -62,7 +62,11 @@ def write_harbours_csv(network: Network, path: str | Path) -> None:
     """Write ``harbours.csv`` for ``network`` (stable column order)."""
     path = Path(path)
     with path.open("w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=_HARBOUR_FIELDS)
+        # lineterminator="\n": deliberately not RFC 4180's "\r\n" default -- this file's bytes
+        # get sha256'd into the bundle's network_ref (provenance.py) and must be identical
+        # regardless of the OS that built the bundle (see write_routes_geojson's `newline="\n"`
+        # for the same reasoning).
+        writer = csv.DictWriter(fh, fieldnames=_HARBOUR_FIELDS, lineterminator="\n")
         writer.writeheader()
         for h in network.harbours:
             writer.writerow(
@@ -101,7 +105,10 @@ def write_routes_geojson(network: Network, path: str | Path) -> None:
             }
         )
     doc = {"type": "FeatureCollection", "features": features}
-    path.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+    # newline="\n": Path.write_text's default translates "\n" to the platform line separator
+    # (\r\n on Windows) -- this file's bytes get sha256'd into the bundle's network_ref
+    # (provenance.py) and must be identical regardless of the OS that built the bundle.
+    path.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8", newline="\n")
 
 
 def _load_harbours(path: Path) -> list[Harbour]:
