@@ -1,0 +1,47 @@
+"""water-routefinder: download, harmonise and sample met-ocean conditions onto route geometry.
+
+Run from the repo root (the pixi tasks do this for you):
+
+    pixi run run-demo     # build resources/user/dublin-bay with config/config.yaml
+    pixi run dry-run       # same, but -n
+
+Unlike a modelblocks-org-style embeddable module, this workflow is a standalone deliverable:
+`rule all` actually builds the bundle(s) rather than refusing to run outside a parent workflow.
+"""
+
+from pathlib import Path
+
+import yaml
+from dotenv import load_dotenv
+from snakemake.utils import min_version, validate
+
+min_version("8.0")
+
+# Optional local credentials (CMEMS_USERNAME/CMEMS_PASSWORD, CDSAPI_URL/CDSAPI_KEY) -- see
+# .env.example and config/README.md. Never overrides a real environment variable that's already
+# set (e.g. from CI secrets); does nothing if no .env file exists.
+load_dotenv()
+
+configfile: "config/config.yaml"
+
+
+validate(config, "internal/config.schema.yaml")
+
+with open(Path(workflow.basedir) / "internal" / "settings.yaml", encoding="utf-8") as _fh:
+    internal = yaml.safe_load(_fh)
+
+
+include: "rules/common.smk"
+include: "rules/bbox.smk"
+include: "rules/download.smk"
+include: "rules/harmonise.smk"
+include: "rules/sample.smk"
+include: "rules/bundle.smk"
+include: "rules/validate.smk"
+include: "rules/diagnostics.smk"
+
+
+rule all:
+    input:
+        expand("results/{network}/validation.txt", network=NETWORKS),
+        expand("results/{network}/{network}_diag_plot.png", network=NETWORKS),

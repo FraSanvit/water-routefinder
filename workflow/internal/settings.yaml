@@ -1,0 +1,32 @@
+# Settings users shouldn't need to touch. Kept in sync BY HAND with the Python modules that are
+# actually authoritative at runtime (water_routefinder.config.PROVIDER_CAPABILITIES,
+# water_routefinder.sources.cmems.DEFAULT_DATASET_IDS, water_routefinder.sources.era5.DEFAULT_DATASET_IDS)
+# — this file exists so a human can see the defaults without opening the package, and to follow the
+# modelblocks-org data-module-template convention of a non-user-editable internal/settings.yaml.
+# If you change a default in the Python modules, update this file in the same commit.
+
+provider_capabilities:
+  # The workflow supports only cmems and era5 for now (no offline mock provider).
+  current: [cmems] # ERA5 is atmospheric/wave only -- no ocean-current product
+  wave: [cmems, era5]
+  wind: [cmems, era5]
+
+default_dataset_ids:
+  # Verified against the live catalogue via copernicusmarine.describe() (2026-09) -- see
+  # sources/cmems.py for how to re-check after a long gap.
+  cmems:
+    current: "cmems_mod_glo_phy_anfc_0.083deg_PT1H-m" # GLOBAL_ANALYSISFORECAST_PHY_001_024; uo, vo
+    wave: "cmems_mod_glo_wav_anfc_0.083deg_PT3H-i" # GLOBAL_ANALYSISFORECAST_WAV_001_027; VHM0, VMDR, VTM10
+    wind: "cmems_obs-wind_glo_phy_my_l4_0.125deg_PT1H" # WIND_GLO_PHY_L4_MY_012_006; eastward_wind, northward_wind
+  era5:
+    wave: "reanalysis-era5-single-levels"
+    wind: "reanalysis-era5-single-levels"
+
+standard_variables:
+  wind_speed: { units: "m s-1" }
+  wind_from_direction: { units: "degree", convention: "from" }
+  current_speed: { units: "m s-1" }
+  current_to_direction: { units: "degree", convention: "to" }
+  wave_height: { units: "m" }
+  wave_from_direction: { units: "degree", convention: "from" }
+  wave_period: { units: "s" }

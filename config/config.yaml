@@ -1,0 +1,25 @@
+# A minimal example configuration -- builds the resources/user/dublin-bay example from live
+# Copernicus Marine data. Needs CMEMS_USERNAME/CMEMS_PASSWORD in the environment (see
+# config/README.md). See docs/contract.md for the bundle this produces.
+
+networks: ["dublin-bay"] # subdirs of resources/user/ to build; omit/empty = discover all
+
+time:
+  start: "2024-01-01"
+  end: "2024-01-08" # exclusive -- this window is 7 days, hourly
+
+sample:
+  densify_km: 1.5 # target vertex spacing after densification (contract recommends ~1-2 km)
+
+harmonise:
+  target_step: "1h"
+
+bbox:
+  margin_deg: 0.1 # degrees added around the network's own extent before fetching
+
+cache_dir: "resources/automatic/.cache"
+
+sources:
+  current: { provider: cmems, dataset_id: null, variables: [uo, vo] }
+  wave: { provider: cmems, dataset_id: null, variables: [VHM0, VMDR, VTM10] }
+  wind: { provider: cmems, dataset_id: null, variables: [eastward_wind, northward_wind] }

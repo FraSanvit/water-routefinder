@@ -1,0 +1,39 @@
+# Path-variable documentation, in the spirit of modelblocks-org/data-module-template's
+# INTERFACE.yaml. water-routefinder is a standalone workflow (not an embeddable module -- see
+# CLAUDE.md), so these paths are fixed rather than re-wireable from a parent workflow; this file
+# exists so the input/output shape is documented in one place.
+version: "1.0.0"
+
+paths:
+  # Snakemake defaults
+  logs: "logs"
+  resources: "resources"
+  results: "results"
+
+  # User-provided input -- one directory per network. routes.geojson is the primary input;
+  # harbours.csv accompanies it (both are required -- see docs/contract.md).
+  user_network_dir: "<resources>/user/{network}"
+  user_harbours: "<resources>/user/{network}/harbours.csv"
+  user_routes: "<resources>/user/{network}/routes.geojson"
+
+  # Automatic / intermediate -- downloaded, harmonised, and sampled data. Safe to delete; the
+  # workflow regenerates everything under resources/automatic/.
+  bbox: "<resources>/automatic/{network}/bbox.json"
+  raw_family: "<resources>/automatic/{network}/raw/{family}.nc" # family: current | wave | wind
+  grid: "<resources>/automatic/{network}/grid.nc"
+  table: "<resources>/automatic/{network}/table.parquet"
+  densified_network_dir: "<resources>/automatic/{network}/densified"
+  download_cache: "<resources>/automatic/.cache" # keyed by provider+dataset+vars+bbox+span
+
+  # Results -- the water-path v0.2 bundle (docs/contract.md), a validation report, and a
+  # diagnostic plot. Every result path is named after its network (the Snakemake `{network}`
+  # wildcard, taken from the input directory name) -- except the four bundle files themselves,
+  # which must keep the exact names water-path's reader expects.
+  bundle_network_dir: "<results>/{network}/network" # harbours.csv, routes.geojson
+  bundle_environment_dir: "<results>/{network}/environment" # conditions.parquet, conditions.meta.yaml
+  validation_report: "<results>/{network}/validation.txt"
+  diag_plot: "<results>/{network}/{network}_diag_plot.png"
+
+wildcards:
+  network: "One resources/user/<network>/ directory per route set; flows into every downstream path."
+  family: "current | wave | wind -- one native met-ocean variable family per download rule."

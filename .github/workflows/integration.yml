@@ -1,0 +1,24 @@
+name: Integration (live CMEMS/ERA5)
+
+on:
+  schedule:
+    - cron: "0 4 * * *" # nightly, 04:00 UTC
+  workflow_dispatch:
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: prefix-dev/setup-pixi@v0.8.1
+        with:
+          pixi-version: v0.80.0
+
+      - name: Live CMEMS / ERA5 integration tests
+        env:
+          CMEMS_USERNAME: ${{ secrets.CMEMS_USERNAME }}
+          CMEMS_PASSWORD: ${{ secrets.CMEMS_PASSWORD }}
+          CDSAPI_KEY: ${{ secrets.CDSAPI_KEY }}
+          CDSAPI_URL: ${{ secrets.CDSAPI_URL }}
+        run: pixi run test-integration-live

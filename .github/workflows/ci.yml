@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: prefix-dev/setup-pixi@v0.8.1
+        with:
+          pixi-version: v0.80.0
+
+      - name: Lint
+        run: pixi run lint
+
+      - name: Unit + input-format tests
+        run: pixi run test-unit
+
+      # The full end-to-end workflow test needs live CMEMS credentials (the workflow supports
+      # only cmems/era5 for now -- no offline mock provider) and is @pytest.mark.integration; see
+      # .github/workflows/integration.yml. Here we only check the DAG builds without running it.
+      - name: Snakemake dry-run (DAG sanity check, no credentials needed)
+        run: pixi run dry-run
+
+      # TODO: once water-path publishes a JSON Schema for the v0.2 contract, add a job here that
+      # fetches it and asserts water_routefinder/schema.py matches (see docs/roadmap.md §8).

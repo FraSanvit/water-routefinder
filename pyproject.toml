@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "water-routefinder"
+version = "0.0.0"
+description = "Snakemake workflow that harmonises met-ocean data and samples wind/current/wave conditions onto vessel-route geometry, emitting the conditions bundle water-path consumes."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+# Intentionally empty: this package is consumed through the pixi workspace (pixi.toml), whose
+# [dependencies] + [pypi-dependencies] are the source of truth for the runtime environment. This
+# list exists so the package remains pip-installable standalone outside pixi.
+dependencies = [
+    "pydantic>=2.6",
+    "pyyaml>=6",
+    "numpy>=1.26",
+    "pandas>=2.1",
+    "xarray>=2024.1",
+    "pyarrow>=15",
+    "pyproj>=3.6",
+    "netcdf4>=1.6",
+]
+
+[project.optional-dependencies]
+cmems = ["copernicusmarine>=1.3"]
+era5 = ["cdsapi>=0.7"]
+viz = ["matplotlib>=3.8"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/water_routefinder"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: hits live Copernicus Marine / CDS; needs credentials (skipped by default)",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+# A conventional baseline (pyflakes, pycodestyle errors, isort, pyupgrade) rather than ruff's
+# full preview rule set -- keeps lint findings actionable instead of stylistic noise.
+select = ["E4", "E7", "E9", "F", "I", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+# Snakemake injects the `snakemake` object into each script's namespace at run time.
+"workflow/scripts/*.py" = ["F821"]

@@ -1,0 +1,54 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+description: Schema for config/config.yaml (the user-editable workflow configuration).
+type: object
+additionalProperties: false
+required: [time, sources]
+properties:
+  networks:
+    description: Subdirectories of resources/user/ to build. Omit/empty to discover all of them.
+    type: array
+    items: { type: string }
+  time:
+    type: object
+    additionalProperties: false
+    required: [start, end]
+    properties:
+      start: { type: string, format: date }
+      end: { type: string, format: date }
+  sample:
+    type: object
+    additionalProperties: false
+    properties:
+      densify_km: { type: number, exclusiveMinimum: 0 }
+  harmonise:
+    type: object
+    additionalProperties: false
+    properties:
+      target_step: { type: string }
+  bbox:
+    type: object
+    additionalProperties: false
+    properties:
+      margin_deg: { type: number, minimum: 0 }
+  cache_dir:
+    type: string
+  sources:
+    type: object
+    additionalProperties: false
+    required: [current, wave, wind]
+    properties:
+      current: { $ref: "#/$defs/source_spec" }
+      wave: { $ref: "#/$defs/source_spec" }
+      wind: { $ref: "#/$defs/source_spec" }
+$defs:
+  source_spec:
+    type: object
+    additionalProperties: false
+    required: [provider, variables]
+    properties:
+      provider: { type: string, enum: [cmems, era5] }
+      dataset_id: { type: [string, "null"] }
+      variables:
+        type: array
+        minItems: 1
+        items: { type: string }
