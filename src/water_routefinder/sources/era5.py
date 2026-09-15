@@ -72,7 +72,13 @@ def fetch(
             },
             str(target),
         )
-        raw = xr.open_dataset(target).load()
+        # `.load()` alone reads the data into memory but doesn't release the underlying file
+        # handle -- on Windows that leaves `target` locked, and TemporaryDirectory's own cleanup
+        # (right after this `with` block exits) fails with a PermissionError. Closing via `with`
+        # is safe here: once loaded, the returned Dataset holds plain in-memory numpy arrays, no
+        # longer backed by the (now-closed, about-to-be-deleted) file.
+        with xr.open_dataset(target) as raw_ds:
+            raw = raw_ds.load()
     raw = raw.rename({k: v for k, v in {"latitude": "latitude", "longitude": "longitude"}.items() if k in raw.dims})
     return _TRANSFORMS[family](raw)
 
