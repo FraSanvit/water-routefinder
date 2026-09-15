@@ -43,6 +43,45 @@ Three ways to authenticate, in order of preference:
 Whichever you use, treat the account as sensitive: don't paste the password into a chat, commit
 it, or put it anywhere other than `.env` (gitignored) or your own shell/CI secrets.
 
+## Limitations & best practices
+
+!!! warning "Coastal/enclosed networks can come back mostly `NaN` for current and wave"
+    CMEMS's global current and wave products (`cmems_mod_glo_phy_anfc_0.083deg_PT1H-m`,
+    `cmems_mod_glo_wav_anfc_0.083deg_PT3H-i`) are gridded at **~0.083° (~9 km) resolution**. Their
+    ocean/wave models land-mask any grid cell too close to the coast or inside a channel/bay
+    narrower than that — real examples caught while building the bundled example networks:
+
+    - **Sherkin Island / Baltimore / Cape Clear**: routes run through channels only 1-3 km wide.
+      At 9 km resolution almost every nearby grid cell was land-masked; current and wave came back
+      100% `NaN` on every route.
+    - **Dublin Bay**: a small, semi-enclosed bay. The *entire* bay — both routes, all three
+      harbours — sat inside the land mask; current and wave were 100% `NaN`.
+
+    **`bbox.margin_deg` can help, but only if there's nearby open water to reach.** Raising it
+    (e.g. `0.1` → `0.5`) pulls more of the source grid into the fetch, giving `harmonise`'s
+    bilinear interpolation valid neighbouring cells to work with — this fully recovered wind for
+    both networks above, and meaningfully improved current for Sherkin Island (one route went
+    from 100% to 0% `NaN`). It did **not** help Dublin Bay's current/wave at all: the route
+    vertices themselves sit inside the masked interior of the bay, with no valid cell close enough
+    for interpolation to reach regardless of how wide the fetch is — widening the margin only adds
+    more masked or irrelevant open-ocean cells further away, none of which are the *route's own*
+    neighbours.
+
+    **Best practices:**
+
+    - Check `results/<network>/<network>_diag_plot.png`'s "Data quality" panel (NaN fraction per
+      route) after any build against a new network — don't assume coverage.
+    - If NaN fraction is high, try raising `bbox.margin_deg` first — cheap to test, sometimes
+      enough (see Sherkin Island above).
+    - If that doesn't help, the network is likely too enclosed/narrow for this dataset's native
+      resolution (Dublin Bay above) — no config value fixes that. The real fix is a
+      **higher-resolution, coastal-specific gridded product** (e.g. a regional CMEMS Baltic/IBI/
+      Atlantic-European-Shelf product, or a locally-forced coastal model) in place of the global
+      0.083° one — a different `sources.<family>.dataset_id`, not a bigger margin.
+    - Wind tends to hold up better in these cases: CMEMS's wind product
+      (`cmems_obs-wind_glo_phy_my_l4_0.125deg_PT1H`) is a satellite-derived, gap-filled L4 product
+      with less aggressive coastal masking than the physics/wave models.
+
 ## Example configuration
 
 ```yaml

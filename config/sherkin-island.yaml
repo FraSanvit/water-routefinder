@@ -14,7 +14,12 @@ harmonise:
   target_step: "1h"
 
 bbox:
-  margin_deg: 0.1
+  # Wider than the other example networks on purpose: Sherkin Island/Baltimore/Cape Clear sit in a
+  # tight cluster of channels only 1-3 km wide, which the ~9km-resolution CMEMS current/wave grids
+  # mostly land-mask. A bigger margin pulls in open-water cells further offshore so harmonise's
+  # bilinear interpolation has valid neighbours to work with, instead of interpolating from a
+  # handful of mostly-masked cells right at the coastline.
+  margin_deg: 0.5
 
 cache_dir: "resources/automatic/.cache"
 

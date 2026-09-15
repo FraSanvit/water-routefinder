@@ -15,7 +15,12 @@ harmonise:
   target_step: "1h"
 
 bbox:
-  margin_deg: 0.1 # degrees added around the network's own extent before fetching
+  # Dublin Bay is a small, semi-enclosed bay -- a narrow margin only reaches a handful of the
+  # ~9km-resolution CMEMS current/wave grid cells, most of which the model land-masks (checked
+  # directly: with margin_deg 0.1, current/wave were 100% NaN on every route -- see the
+  # sherkin-island network for the same issue and fix). A wider margin pulls in open-water cells
+  # further offshore so harmonise's bilinear interpolation has valid neighbours to work with.
+  margin_deg: 0.5 # degrees added around the network's own extent before fetching
 
 cache_dir: "resources/automatic/.cache"
 
