@@ -6,8 +6,12 @@ geometry into the ready-to-use bundle
 [`water-path`](https://github.com/FraSanvit/water-path) consumes. A [Snakemake](https://snakemake.github.io/)
 workflow, managed with [pixi](https://pixi.sh).
 
+**📖 Full documentation: [frasanvit.github.io/water-routefinder](https://frasanvit.github.io/water-routefinder/)**
+— quickstart, every `config/config.yaml` key, architecture, and the v0.2 bundle contract.
+
 The workflow supports only `cmems` and `era5` for now (a later stage may add an offline mock
-provider back for demos/CI) — running `run-demo` for real needs live credentials (see below).
+provider back for demos/CI) — running `run-demo` for real needs live credentials (see the
+[Quickstart](https://frasanvit.github.io/water-routefinder/quickstart/)).
 
 ## Quickstart
 
@@ -16,50 +20,43 @@ pixi install                # creates the project environment (pixi.toml)
 pixi run test-unit           # offline unit + input-format tests (no credentials needed)
 pixi run dry-run              # sanity-check the DAG without running anything (no credentials needed)
 
-cp .env.example .env         # then fill in CMEMS_USERNAME/CMEMS_PASSWORD (see config/README.md
+cp .env.example .env         # then fill in CMEMS_USERNAME/CMEMS_PASSWORD (see the docs
                                #   for alternatives, incl. `copernicusmarine login`)
 pixi run run-demo            # builds resources/user/dublin-bay -> results/dublin-bay/
 ```
 
 `run-demo` produces, from the example network under `resources/user/dublin-bay/`:
 
-```
+```text
 results/dublin-bay/
   network/{harbours.csv, routes.geojson}      # the water-path bundle
   environment/{conditions.parquet, conditions.meta.yaml}
   validation.txt                              # "OK", or the contract violations found
-  dublin-bay_diag_plot.png                    # route map + conditions-over-time + data-quality panel
+  dublin-bay_diag_plot.png                    # route map (real coastlines) + conditions-over-time + data-quality panel
 ```
 
-## Configuring your own network
-
-Put a network directory under `resources/user/<name>/`:
-- `routes.geojson` — a GeoJSON `FeatureCollection` of route `LineString`s (see
-  `resources/user/dublin-bay/routes.geojson` for the shape).
-- `harbours.csv` — `harbour_id,name,lat,lon[,country_code]`.
-
-Then edit `config/config.yaml` (documented in `config/README.md`) — at minimum set `networks` to
-your network's name and a `time` window — and run `pixi run run-demo` (or
-`pixi run snakemake --snakefile workflow/Snakefile --configfile config/config.yaml --cores 1`
-directly). Each variable family (current/wave/wind) picks its own provider — `cmems` (needs
-`CMEMS_USERNAME`/`CMEMS_PASSWORD`) or `era5` (wind/wave only — needs a CDS API key).
+See **[Configuring your own network](https://frasanvit.github.io/water-routefinder/quickstart/#build-your-own-network)**
+for `routes.geojson`/`harbours.csv` shape and every `config/config.yaml` key.
 
 ## Layout
 
-```
+```text
 pixi.toml, pyproject.toml   # pixi workspace + the water_routefinder package (hatchling)
+mkdocs.yml, docs/            # the documentation site (published to GitHub Pages)
 INTERFACE.yaml               # path-variable documentation
 config/                      # user-editable config + its schema doc
 workflow/                    # Snakefile, rules/*.smk, scripts/*.py, internal/ (schema + settings)
 src/water_routefinder/       # the reusable, unit-tested core the workflow scripts call into
 resources/user/              # your input networks (routes.geojson + harbours.csv)
 resources/automatic/          # downloads + intermediates (safe to delete; regenerated)
+resources/basemap/            # bundled offline land polygons for the diagnostic plot's map panel
 results/                      # the built bundle(s) + validation report + diagnostic plot
 tests/                        # unit, input-format, and end-to-end workflow tests
-docs/                         # roadmap.md (design history) + contract.md (the v0.2 bundle spec)
 ```
 
-See `CLAUDE.md` for the architecture in more depth and `docs/contract.md` for the bundle contract.
+See [Architecture](https://frasanvit.github.io/water-routefinder/architecture/) for how it fits
+together and [the bundle contract](https://frasanvit.github.io/water-routefinder/contract/) for
+the exact output format.
 
 ## Tests
 
@@ -68,6 +65,17 @@ pixi run test-unit             # offline: unit tests + input-format tests
 pixi run test                  # same, minus any @pytest.mark.integration test
 pixi run test-integration-live # needs CMEMS_USERNAME/CMEMS_PASSWORD and/or CDS API credentials
                                  #   -- includes the full end-to-end Snakemake workflow test
+```
+
+## Docs site
+
+`docs/` (built with [MkDocs Material](https://squidfunk.github.io/mkdocs-material/)) is published
+automatically to GitHub Pages on every push to `main` that touches it
+(`.github/workflows/docs.yml`). To preview locally:
+
+```sh
+pixi run docs-serve   # http://127.0.0.1:8000, live-reloads on edit
+pixi run docs-build    # static build to site/ (--strict: fails on broken links)
 ```
 
 ## License

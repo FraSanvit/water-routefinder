@@ -1,0 +1,51 @@
+site_name: water-routefinder
+site_description: >-
+  Downloads, harmonises and samples met-ocean conditions onto vessel-route geometry, emitting the
+  conditions bundle water-path consumes.
+site_url: https://frasanvit.github.io/water-routefinder/
+repo_url: https://github.com/FraSanvit/water-routefinder
+repo_name: FraSanvit/water-routefinder
+edit_uri: edit/main/docs/
+
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - Configuration: configuration.md
+  - Architecture: architecture.md
+  - Bundle contract (v0.2): contract.md
+  - Roadmap: roadmap.md
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - content.action.edit
+    - search.suggest
+    - toc.follow
+
+markdown_extensions:
+  - admonition
+  - tables
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - toc:
+      permalink: true
