@@ -28,6 +28,9 @@ pydantic = ">=2.6"
 netcdf4 = ">=1.6"
 matplotlib = ">=3.8"
 python-dotenv = ">=1.0"
+geopandas = ">=1.0"
+pyogrio = ">=0.9"
+mkdocs-material = ">=9.5"
 
 # Not (reliably) on conda-forge / simplest kept as pip installs, including the package itself
 # (editable, so `import water_routefinder` resolves to src/water_routefinder without a build step).
@@ -47,3 +50,6 @@ lint = "ruff check ."
 # Build the example network end to end (needs CMEMS_USERNAME/CMEMS_PASSWORD -- see config/README.md).
 run-demo = "snakemake --snakefile workflow/Snakefile --configfile config/config.yaml --cores 1"
 dry-run = "snakemake --snakefile workflow/Snakefile --configfile config/config.yaml --cores 1 -n"
+# Docs site (docs/, mkdocs.yml) -- published via .github/workflows/docs.yml on push to main.
+docs-serve = "mkdocs serve"
+docs-build = "mkdocs build --strict"

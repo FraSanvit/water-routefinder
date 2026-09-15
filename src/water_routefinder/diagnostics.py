@@ -1,8 +1,8 @@
 """One overview PNG per network: ``results/{network}/{network}_diag_plot.png``.
 
-Three panels: the route map, per-variable conditions over time (min/mean/max across all
-vertices), and a data-quality summary (NaN fraction / vertex count per route). Needs the ``viz``
-extra (``matplotlib``).
+Three panels: the route map (optionally over a real land basemap), per-variable conditions over
+time (min/mean/max across all vertices), and a data-quality summary (NaN fraction / vertex count
+per route).
 """
 
 from __future__ import annotations
@@ -17,11 +17,24 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from water_routefinder.io import load_network
+from water_routefinder.network import Network
 from water_routefinder.schema import VARIABLES
+from water_routefinder.sources.base import bbox_from_network
 
 
-def make_diag_plot(bundle_dir: str | Path, out_png: str | Path, *, title: str | None = None) -> Path:
-    """Build and save the diagnostic figure; returns the path written."""
+def make_diag_plot(
+    bundle_dir: str | Path,
+    out_png: str | Path,
+    *,
+    title: str | None = None,
+    basemap: bool = True,
+) -> Path:
+    """Build and save the diagnostic figure; returns the path written.
+
+    ``basemap`` overlays real land polygons behind the route map -- read from a small,
+    fully-offline, no-network-call local file (see ``_add_basemap``). Pass ``False`` to skip it
+    (e.g. a minimal bare-axes plot).
+    """
     bundle_dir = Path(bundle_dir)
     out_png = Path(out_png)
     network = load_network(bundle_dir / "network")
@@ -29,7 +42,7 @@ def make_diag_plot(bundle_dir: str | Path, out_png: str | Path, *, title: str | 
 
     fig = plt.figure(figsize=(11, 18), constrained_layout=True)
     gs = fig.add_gridspec(3, 1, height_ratios=[3, 6, 2])
-    _plot_map(fig.add_subplot(gs[0]), network)
+    _plot_map(fig.add_subplot(gs[0]), network, basemap=basemap)
     _plot_conditions(fig, gs[1], table)
     _plot_quality(fig.add_subplot(gs[2]), table, network)
     fig.suptitle(title or f"{bundle_dir.name} — conditions diagnostics", fontsize=14)
@@ -44,20 +57,63 @@ def make_diag_plot(bundle_dir: str | Path, out_png: str | Path, *, title: str | 
     return out_png
 
 
-def _plot_map(ax, network) -> None:
+#: Land polygons for the basemap: Natural Earth 1:10m "land" (public domain), clipped to Europe
+#: + North Atlantic approaches (lon -30..35, lat 32..72 -- covers every example network, with
+#: room for more) and re-saved as GeoParquet. A plain local file, not a live web-tile fetch: the
+#: first cut of this used `contextily` to pull map tiles at render time, which turned out to be
+#: a bad trade for a diagnostic plot -- checked directly against three tile providers from a
+#: slow/restricted network: Esri ~48s/tile, OpenStreetMap ~7s/tile *and* an outright 403 (its
+#: tile usage policy blocks automated clients without a compliant User-Agent), CartoDB requires
+#: an API key everywhere now, including its old "free" endpoint (serves an "API key required"
+#: watermark image with a 200 status -- fails silently, not even an exception). None of that can
+#: happen to a bundled static file: no network call, no timeout, no rate limit, no ToS, and it's
+#: faster besides.
+_BASEMAP_PATH = Path(__file__).resolve().parents[2] / "resources" / "basemap" / "europe_land_10m.parquet"
+
+
+def _plot_map(ax, network: Network, *, basemap: bool) -> None:
+    if basemap:
+        _add_basemap(ax)
     for route in network.routes:
         lats = [p.lat for p in route.path]
         lons = [p.lon for p in route.path]
-        ax.plot(lons, lats, marker=".", markersize=3, linewidth=1.2, label=route.route_id)
+        ax.plot(lons, lats, marker=".", markersize=3, linewidth=1.2, zorder=5, label=route.route_id)
     for h in network.harbours:
-        ax.scatter([h.lon], [h.lat], marker="s", s=40, color="black", zorder=5)
-        ax.annotate(h.harbour_id, (h.lon, h.lat), textcoords="offset points", xytext=(4, 4), fontsize=8)
+        ax.scatter([h.lon], [h.lat], marker="s", s=40, color="black", zorder=6)
+        ax.annotate(
+            h.harbour_id, (h.lon, h.lat), textcoords="offset points", xytext=(4, 4), fontsize=8, zorder=6
+        )
     ax.set_xlabel("longitude")
     ax.set_ylabel("latitude")
     ax.set_title("Network")
-    ax.set_aspect("equal", adjustable="datalim")
+    if basemap:
+        # The basemap layer spans all of Europe -- without an explicit xlim/ylim, autoscale
+        # would fit *that* instead of the network, zooming out to the whole continent for e.g. a
+        # Dublin Bay route. adjustable="box" (not the default "datalim") keeps these exact limits:
+        # "datalim" lets the equal-aspect constraint silently override one of them to fit the
+        # axes' box shape instead -- which clipped the latitude axis off the figure entirely.
+        bbox = bbox_from_network(network, margin_deg=0.05)
+        ax.set_xlim(bbox.min_lon, bbox.max_lon)
+        ax.set_ylim(bbox.min_lat, bbox.max_lat)
+        ax.set_aspect("equal", adjustable="box")
+    else:
+        ax.set_aspect("equal", adjustable="datalim")
     if network.routes:
         ax.legend(fontsize=7, loc="best", ncol=2)
+
+
+def _add_basemap(ax) -> None:
+    """Best-effort land backdrop from the bundled Natural Earth extract. Never fails the plot --
+    a missing/corrupt file or a missing geopandas install just means no basemap (a warning, not
+    a crash) -- though neither should happen in a normal install."""
+    try:
+        import geopandas as gpd
+
+        land = gpd.read_parquet(_BASEMAP_PATH)
+        ax.set_facecolor("#eef6fb")
+        land.plot(ax=ax, color="#e2ddd0", edgecolor="#a8a296", linewidth=0.4, zorder=0)
+    except Exception as exc:  # noqa: BLE001 - any failure here is cosmetic, never fatal
+        warnings.warn(f"diagnostics: basemap unavailable, plotting without it ({exc})", stacklevel=2)
 
 
 def _plot_conditions(fig, gridspec_slot, table: pd.DataFrame) -> None:

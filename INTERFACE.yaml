@@ -16,6 +16,10 @@ paths:
   user_harbours: "<resources>/user/{network}/harbours.csv"
   user_routes: "<resources>/user/{network}/routes.geojson"
 
+  # Static, shared, non-per-network assets committed to the repo (not downloaded, not
+  # per-network config -- unlike everything else under resources/).
+  basemap: "<resources>/basemap/europe_land_10m.parquet" # Natural Earth 1:10m land, clipped
+
   # Automatic / intermediate -- downloaded, harmonised, and sampled data. Safe to delete; the
   # workflow regenerates everything under resources/automatic/.
   bbox: "<resources>/automatic/{network}/bbox.json"

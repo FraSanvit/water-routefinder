@@ -19,6 +19,12 @@ def test_valid_config_parses():
     cfg = WorkflowConfig.model_validate(_BASE)
     assert cfg.sample.densify_km == 1.5
     assert cfg.harmonise.target_step == "1h"
+    assert cfg.diagnostics.basemap is True
+
+
+def test_basemap_can_be_disabled():
+    cfg = WorkflowConfig.model_validate({**_BASE, "diagnostics": {"basemap": False}})
+    assert cfg.diagnostics.basemap is False
 
 
 def test_era5_current_is_rejected():

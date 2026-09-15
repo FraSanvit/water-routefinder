@@ -70,6 +70,14 @@ class BBoxConfig(BaseModel):
     margin_deg: float = Field(default=0.1, ge=0)
 
 
+class DiagnosticsConfig(BaseModel):
+    model_config = {"frozen": True}
+
+    #: Overlay real land polygons (a bundled, offline Natural Earth extract -- no network call)
+    #: behind the route map. Set False for a bare-axes plot.
+    basemap: bool = True
+
+
 class WorkflowConfig(BaseModel):
     """The full, validated contents of ``config/config.yaml``."""
 
@@ -81,6 +89,7 @@ class WorkflowConfig(BaseModel):
     sample: SampleConfig = SampleConfig()
     harmonise: HarmoniseConfig = HarmoniseConfig()
     bbox: BBoxConfig = BBoxConfig()
+    diagnostics: DiagnosticsConfig = DiagnosticsConfig()
     cache_dir: str = "resources/automatic/.cache"
     sources: dict[Family, SourceSpec]
 

@@ -32,6 +32,14 @@ properties:
       margin_deg: { type: number, minimum: 0 }
   cache_dir:
     type: string
+  diagnostics:
+    type: object
+    additionalProperties: false
+    properties:
+      basemap:
+        description: Overlay real land polygons (a bundled, offline extract -- no network
+          call) behind the route map. Set false for a bare-axes plot.
+        type: boolean
   sources:
     type: object
     additionalProperties: false
