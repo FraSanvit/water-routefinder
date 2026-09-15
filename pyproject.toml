@@ -37,6 +37,19 @@ markers = [
     "integration: hits live Copernicus Marine / CDS; needs credentials (skipped by default)",
 ]
 
+[tool.coverage.run]
+# Scoped to the package on purpose: workflow/scripts/*.py are thin Snakemake adapters (unpack
+# snakemake.input/output/params and call this package), exercised by the live end-to-end
+# workflow test, not the offline unit suite `test-cov` runs -- they'd show as uncovered noise
+# on every offline coverage report otherwise.
+source = ["src/water_routefinder"]
+
+[tool.coverage.report]
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
+
 [tool.ruff]
 line-length = 100
 

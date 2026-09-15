@@ -1,5 +1,10 @@
 # water-routefinder
 
+[![CI](https://github.com/FraSanvit/water-routefinder/actions/workflows/ci.yml/badge.svg)](https://github.com/FraSanvit/water-routefinder/actions/workflows/ci.yml)
+[![Docs](https://github.com/FraSanvit/water-routefinder/actions/workflows/docs.yml/badge.svg)](https://frasanvit.github.io/water-routefinder/)
+[![codecov](https://codecov.io/gh/FraSanvit/water-routefinder/branch/main/graph/badge.svg)](https://codecov.io/gh/FraSanvit/water-routefinder)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
 Builds standardised wind, current and wave conditions along vessel routes — downloads met-ocean
 data (Copernicus Marine and/or ERA5), harmonises it onto one grid, and samples it onto route
 geometry into the ready-to-use bundle
@@ -63,6 +68,7 @@ the exact output format.
 ```sh
 pixi run test-unit             # offline: unit tests + input-format tests
 pixi run test                  # same, minus any @pytest.mark.integration test
+pixi run test-cov               # same, + a coverage report (coverage.xml, for Codecov)
 pixi run test-integration-live # needs CMEMS_USERNAME/CMEMS_PASSWORD and/or CDS API credentials
                                  #   -- includes the full end-to-end Snakemake workflow test
 ```

@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # Codecov wants the parent commit too, for PR diff coverage
 
       - uses: prefix-dev/setup-pixi@v0.8.1
         with:
@@ -18,8 +20,15 @@ jobs:
       - name: Lint
         run: pixi run lint
 
-      - name: Unit + input-format tests
-        run: pixi run test-unit
+      - name: Unit + input-format tests, with coverage
+        run: pixi run test-cov
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+          fail_ci_if_error: false # don't fail CI over a Codecov hiccup
 
       # The full end-to-end workflow test needs live CMEMS credentials (the workflow supports
       # only cmems/era5 for now -- no offline mock provider) and is @pytest.mark.integration; see
