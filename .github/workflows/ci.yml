@@ -28,7 +28,11 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
-          fail_ci_if_error: false # don't fail CI over a Codecov hiccup
+          verbose: true
+          # Temporarily true (was false) so a real upload failure shows up as a red X instead of
+          # being silently swallowed -- the badge staying "unknown" needs a visible cause. Revert
+          # to false once a report has successfully landed on Codecov at least once.
+          fail_ci_if_error: true
 
       # The full end-to-end workflow test needs live CMEMS credentials (the workflow supports
       # only cmems/era5 for now -- no offline mock provider) and is @pytest.mark.integration; see
