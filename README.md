@@ -84,6 +84,13 @@ pixi run docs-serve   # http://127.0.0.1:8000, live-reloads on edit
 pixi run docs-build    # static build to site/ (--strict: fails on broken links)
 ```
 
+## Acknowledgements
+
+This repo's directory/workflow conventions follow
+[`modelblocks-org/data-module-template`](https://github.com/modelblocks-org/data-module-template)
+and the Snakemake data-module practice of [irm-codebase](https://github.com/irm-codebase) — see
+[Architecture](https://frasanvit.github.io/water-routefinder/architecture/) for the specifics.
+
 ## License
 
 Apache-2.0 — see `LICENSE`.

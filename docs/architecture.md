@@ -38,7 +38,9 @@ Directory conventions follow
 vs `results/` (output); `config/` (user-editable, schema-validated) vs `workflow/internal/`
 (non-user-editable settings — provider capability matrix, default dataset ids). One departure from
 that template: it builds *embeddable modules* whose `rule all` refuses to run standalone;
-`water-routefinder` is a standalone deliverable, so `rule all` actually builds the bundle(s).
+`water-routefinder` is a standalone deliverable, so `rule all` actually builds the bundle(s). This
+workflow's structure is built on that template's rationale, and on the Snakemake data-module
+practice of [irm-codebase](https://github.com/irm-codebase).
 
 ## The bundle contract
 
