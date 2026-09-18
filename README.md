@@ -18,6 +18,9 @@ The workflow supports only `cmems` and `era5` for now (a later stage may add an 
 provider back for demos/CI) — running `run-demo` for real needs live credentials (see the
 [Quickstart](https://frasanvit.github.io/water-routefinder/quickstart/)).
 
+<img src="docs/figures/example_route.png" alt="Data availability map for the Rosslare–Roscoff example: time-mean wind, current and wave fields on the source grid, with the route overlaid" width="700">
+
+
 ## Quickstart
 
 ```sh
