@@ -70,11 +70,12 @@ def make_diag_plot(
     return out_png
 
 
-#: Which of the 7 contract variables get a panel here, and how they're paired up -- one row per
-#: family (wind, current, wave), magnitude next to its direction. Deliberately excludes
-#: wave_period: it's a real magnitude field, but it isn't "wave, wind, current... and direction",
-#: and folding it in would break the tidy 3x2 grid for no real gain (its own availability already
-#: matches wave_height's -- both come from the same source dataset).
+#: Which of the 7 contract variables get a panel here, and how they're paired up -- one *column*
+#: per family (wind, current, wave), magnitude on the top row and its direction below it, so the
+#: figure is a landscape 2x3 grid. Deliberately excludes wave_period: it's a real magnitude field,
+#: but it isn't "wave, wind, current... and direction", and folding it in would break the tidy 2x3
+#: grid for no real gain (its own availability already matches wave_height's -- both come from the
+#: same source dataset).
 _AVAILABILITY_LAYOUT: tuple[tuple[str, str], ...] = (
     ("wind_speed", "wind_from_direction"),
     ("current_speed", "current_to_direction"),
@@ -114,10 +115,12 @@ def make_availability_plot(
     network = load_network(bundle_dir / "network")
 
     with xr.open_dataset(grid_path) as grid:
-        fig = plt.figure(figsize=(11, 15), constrained_layout=True)
-        gs = fig.add_gridspec(len(_AVAILABILITY_LAYOUT), 2)
-        for row, pair in enumerate(_AVAILABILITY_LAYOUT):
-            for col, var in enumerate(pair):
+        # Landscape 2 rows (magnitude / direction) x 3 columns (wind / current / wave): each panel
+        # keeps roughly the same ~4x3.6in footprint it had in the previous 3x2 portrait layout.
+        fig = plt.figure(figsize=(15, 8.5), constrained_layout=True)
+        gs = fig.add_gridspec(2, len(_AVAILABILITY_LAYOUT))
+        for col, pair in enumerate(_AVAILABILITY_LAYOUT):
+            for row, var in enumerate(pair):
                 _plot_availability_panel(fig.add_subplot(gs[row, col]), grid, var, network, basemap=basemap)
         fig.suptitle(title or f"{bundle_dir.name} — data availability", fontsize=14)
 

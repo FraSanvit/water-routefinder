@@ -278,7 +278,7 @@ def test_make_availability_plot_writes_a_non_empty_png(expected_bundle_dir, tmp_
 
 def test_availability_layout_is_three_families_by_magnitude_and_direction():
     # wind/current/wave, each paired (magnitude, direction) -- not wave_period, which isn't a
-    # direction and would break the tidy 3x2 grid.
+    # direction and would break the tidy 2x3 grid.
     assert _AVAILABILITY_LAYOUT == (
         ("wind_speed", "wind_from_direction"),
         ("current_speed", "current_to_direction"),
@@ -296,9 +296,9 @@ def test_availability_plot_has_one_panel_per_variable(expected_bundle_dir):
     n_variables = sum(len(pair) for pair in _AVAILABILITY_LAYOUT)
 
     fig = plt.figure()
-    gs = fig.add_gridspec(len(_AVAILABILITY_LAYOUT), 2)
-    for row, pair in enumerate(_AVAILABILITY_LAYOUT):
-        for col, var in enumerate(pair):
+    gs = fig.add_gridspec(2, len(_AVAILABILITY_LAYOUT))
+    for col, pair in enumerate(_AVAILABILITY_LAYOUT):
+        for row, var in enumerate(pair):
             _plot_availability_panel(fig.add_subplot(gs[row, col]), grid, var, network, basemap=False)
     # Each panel is a map axes plus its own colorbar axes -- 2 axes per variable.
     n_axes = len(fig.axes)
