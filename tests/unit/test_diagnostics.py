@@ -4,20 +4,27 @@ import warnings
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import pytest
 
+from tests._synthetic import synthetic_dataset
 from water_routefinder.diagnostics import (
+    _AVAILABILITY_LAYOUT,
     _BASEMAP_PATH,
+    _DIRECTION_VARS,
     _MAP_MARGIN_FRACTION,
+    _plot_availability_panel,
     _plot_conditions,
     _plot_map,
     _plot_quality,
+    make_availability_plot,
     make_diag_plot,
 )
 from water_routefinder.io import load_network
 from water_routefinder.network import Harbour, Network, Point, Route
 from water_routefinder.schema import empty_frame
+from water_routefinder.sources.base import bbox_from_network
 
 
 def test_make_diag_plot_writes_a_non_empty_png(expected_bundle_dir, tmp_path):
@@ -246,3 +253,92 @@ def test_conditions_xaxis_stays_pinned_when_a_variable_is_entirely_nan():
         assert got_min == expected_min
         assert got_max == expected_max
     plt.close(fig)
+
+
+def _synthetic_grid(network: Network):
+    """A small, deterministic 7-variable grid (same shape as harmonise's real output) covering
+    ``network``'s own extent -- stands in for a real ``resources/automatic/{network}/grid.nc``."""
+    bbox = bbox_from_network(network, margin_deg=0.1)
+    return synthetic_dataset(bbox, "2024-01-01", "2024-01-02")
+
+
+def test_make_availability_plot_writes_a_non_empty_png(expected_bundle_dir, tmp_path):
+    network = load_network(expected_bundle_dir / "network")
+    grid_path = tmp_path / "grid.nc"
+    _synthetic_grid(network).to_netcdf(grid_path)
+    out_png = tmp_path / "dublin-bay_availability_map.png"
+
+    result = make_availability_plot(expected_bundle_dir, grid_path, out_png)
+
+    assert result == out_png
+    assert out_png.is_file()
+    assert out_png.stat().st_size > 1000
+    assert out_png.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
+
+
+def test_availability_layout_is_three_families_by_magnitude_and_direction():
+    # wind/current/wave, each paired (magnitude, direction) -- not wave_period, which isn't a
+    # direction and would break the tidy 3x2 grid.
+    assert _AVAILABILITY_LAYOUT == (
+        ("wind_speed", "wind_from_direction"),
+        ("current_speed", "current_to_direction"),
+        ("wave_height", "wave_from_direction"),
+    )
+    magnitude_vars = {pair[0] for pair in _AVAILABILITY_LAYOUT}
+    direction_vars = {pair[1] for pair in _AVAILABILITY_LAYOUT}
+    assert direction_vars == _DIRECTION_VARS
+    assert magnitude_vars.isdisjoint(_DIRECTION_VARS)
+
+
+def test_availability_plot_has_one_panel_per_variable(expected_bundle_dir):
+    network = load_network(expected_bundle_dir / "network")
+    grid = _synthetic_grid(network)
+    n_variables = sum(len(pair) for pair in _AVAILABILITY_LAYOUT)
+
+    fig = plt.figure()
+    gs = fig.add_gridspec(len(_AVAILABILITY_LAYOUT), 2)
+    for row, pair in enumerate(_AVAILABILITY_LAYOUT):
+        for col, var in enumerate(pair):
+            _plot_availability_panel(fig.add_subplot(gs[row, col]), grid, var, network, basemap=False)
+    # Each panel is a map axes plus its own colorbar axes -- 2 axes per variable.
+    n_axes = len(fig.axes)
+    plt.close(fig)
+
+    assert n_variables == 6
+    assert n_axes == n_variables * 2
+
+
+def test_availability_direction_panels_use_a_cyclic_colormap(expected_bundle_dir):
+    # A sequential colormap (e.g. viridis) on 0-360 degree data shows a false discontinuity at
+    # the wrap-around -- 359 deg and 1 deg are nearly the same direction but would land at
+    # opposite ends of the colour scale.
+    network = load_network(expected_bundle_dir / "network")
+    grid = _synthetic_grid(network)
+
+    fig, ax_mag = plt.subplots()
+    mesh_mag = _plot_availability_panel(ax_mag, grid, "wind_speed", network, basemap=False)
+    plt.close(fig)
+
+    fig, ax_dir = plt.subplots()
+    mesh_dir = _plot_availability_panel(ax_dir, grid, "wind_from_direction", network, basemap=False)
+    plt.close(fig)
+
+    assert mesh_dir.get_cmap().name == "twilight"
+    assert mesh_mag.get_cmap().name != "twilight"
+
+
+def test_availability_panel_leaves_a_permanently_masked_cell_transparent(expected_bundle_dir):
+    # The whole point of this plot: a grid cell that's NaN at every timestep (the common case for
+    # the coastal land-masking this project has run into repeatedly) must render as a gap, not a
+    # filled-in value -- that gap is the "availability" signal.
+    network = load_network(expected_bundle_dir / "network")
+    grid = _synthetic_grid(network)
+    grid["wind_speed"][:, 0, 0] = np.nan  # one corner cell, masked for all time
+
+    fig, ax = plt.subplots()
+    mesh = _plot_availability_panel(ax, grid, "wind_speed", network, basemap=False)
+    array = np.asarray(mesh.get_array()).reshape(grid["latitude"].size, grid["longitude"].size)
+    plt.close(fig)
+
+    assert np.isnan(array[0, 0])
+    assert not np.isnan(array).all()  # not the whole grid -- just that one cell

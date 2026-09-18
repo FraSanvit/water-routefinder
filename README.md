@@ -38,6 +38,7 @@ results/dublin-bay/
   environment/{conditions.parquet, conditions.meta.yaml}
   validation.txt                              # "OK", or the contract violations found
   dublin-bay_diag_plot.png                    # route map (real coastlines) + conditions-over-time + data-quality panel
+  dublin-bay_availability_map.png             # per-variable pixel map of the source grid's own coverage, route overlaid
 ```
 
 See **[Configuring your own network](https://frasanvit.github.io/water-routefinder/quickstart/#build-your-own-network)**

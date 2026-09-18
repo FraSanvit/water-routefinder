@@ -20,10 +20,18 @@ the older v0.1 NetCDF format) — `src/water_routefinder/network.py` + `io.py` v
 ```text
 resources/user/{network}/{routes.geojson,harbours.csv}   <- your input
         |
-   make_bbox -> download (cmems|era5, per family) -> harmonise -> sample -> bundle -> validate -> diagnostics
+   make_bbox -> download (cmems|era5, per family) -> harmonise -> sample -> bundle -> validate
+        |                                               |                    |
+        |                                               |                    +-> diagnostics
+        |                                               +------------------------> availability
         |
-results/{network}/{network,environment,validation.txt,{network}_diag_plot.png}
+results/{network}/{network,environment,validation.txt,{network}_diag_plot.png,{network}_availability_map.png}
 ```
+
+`diagnostics` and `availability` are two independent leaves, not a chain: `diagnostics` reads the
+finished bundle (route-sampled values); `availability` reads the harmonised *grid* directly,
+skipping `sample`/`bundle`, so it can show the source data's own spatial coverage rather than
+what got interpolated onto the route.
 
 Snakemake (`workflow/Snakefile` + `workflow/rules/*.smk`) orchestrates; the actual logic lives in
 the plain, unit-tested `src/water_routefinder/` package — `workflow/scripts/*.py` are thin

@@ -67,17 +67,62 @@ it, or put it anywhere other than `.env` (gitignored) or your own shell/CI secre
     more masked or irrelevant open-ocean cells further away, none of which are the *route's own*
     neighbours.
 
+    **A higher-resolution dataset is not automatically a fix either — tried and checked.** CMEMS
+    also publishes a regional Iberia-Biscay-Ireland product (`cmems_mod_ibi_phy-cur_my_0.027deg_*`,
+    `cmems_mod_ibi_wav_my_0.027deg_*` — ~0.027°, ~3 km, roughly 3x finer, same variable names so a
+    drop-in `dataset_id` swap). Swapped it in and reran both networks above end-to-end, live:
+
+    - **Dublin Bay**: no change — still 100% `NaN`. Same conclusion as above: the whole bay is
+      inside the mask regardless of grid spacing.
+    - **Sherkin Island**: *regressed*. Current went from partially valid (one route 0% `NaN`) to
+      100% `NaN` on every route, checked with both bilinear and nearest-neighbour sampling — the
+      grid cells nearest the route are genuinely land-masked in the finer product, not just short
+      a bilinear neighbour. The coarse 9 km model doesn't resolve these islands at all, so it
+      blurs the whole channel into one "mostly ocean" cell and reports a number anyway (not very
+      physically meaningful for a 1-3 km channel, but present, and enough for `interp` to succeed).
+      The fine 3 km model *does* resolve the islands, and correctly recognises that its own
+      bathymetry can't call this exact channel navigable — so it masks it. More accurate isn't the
+      same as more useful here.
+
+    Also tried CMEMS's North West Shelf regional product (`cmems_mod_nws_*`, UK Met Office AMM15 —
+    ~7 km current reanalysis, ~1.5 km wave reanalysis `MetO-NWS-WAV-RAN`), the finest CMEMS option
+    covering Ireland found so far — this time against **all four** bundled example networks, not
+    just the two enclosed/narrow ones, to see whether it helps routes that aren't pinned to a
+    sub-3km channel. Results were genuinely mixed, not uniform:
+
+    | Network | Result with NWS |
+    |---|---|
+    | Dublin Bay | unchanged — still 100% `NaN` |
+    | Sherkin Island | current *worse on every route* (one route 0% → 57.9% `NaN`, another 57.1% → 100%); wave still 100% `NaN` |
+    | Rosslare-Roscoff | **improved**: current 4.4% → 3.2% `NaN`, wave 4.4% → 3.7% `NaN` |
+    | Aran Islands | *worse on every one of 6 routes* (current and wave both rose everywhere; one route's wave NaN nearly doubled, 44% → 78%) |
+
+    Rosslare-Roscoff is a long, mostly open-water crossing — fits the theory that finer resolution
+    helps once a route isn't hugging complex coastline. Aran Islands was the surprise: despite
+    having long open-water legs too, every route got worse — its routes apparently hug the
+    harbour-end coastlines (Rossaveal, Doolin, the island piers) closely enough to hit the same
+    masking effect as Sherkin Island anyway. **"Looks like open water" is not a reliable predictor
+    without actually checking** — the example networks are left on the global default throughout
+    (including Rosslare-Roscoff, despite its real improvement, kept for consistency across the
+    four — see that network's `config/rosslare-roscoff.yaml` if you want to reconsider it).
+
     **Best practices:**
 
     - Check `results/<network>/<network>_diag_plot.png`'s "Data quality" panel (NaN fraction per
-      route) after any build against a new network — don't assume coverage.
+      route) after any build against a new network — don't assume coverage, and don't assume a
+      change helped without checking the actual per-route numbers, not just the raw grid's.
     - If NaN fraction is high, try raising `bbox.margin_deg` first — cheap to test, sometimes
       enough (see Sherkin Island above).
-    - If that doesn't help, the network is likely too enclosed/narrow for this dataset's native
-      resolution (Dublin Bay above) — no config value fixes that. The real fix is a
-      **higher-resolution, coastal-specific gridded product** (e.g. a regional CMEMS Baltic/IBI/
-      Atlantic-European-Shelf product, or a locally-forced coastal model) in place of the global
-      0.083° one — a different `sources.<family>.dataset_id`, not a bigger margin.
+    - Don't reach for a higher-resolution `dataset_id` expecting it to help, and don't assume a
+      route "looks open enough" to benefit without testing — Aran Islands looked like a good
+      candidate and regressed anyway. It genuinely can go either way: it helped Rosslare-Roscoff,
+      hurt Aran Islands and Sherkin Island, and did nothing for Dublin Bay. Always verify per-route
+      NaN fraction before and after on the actual network you care about, not just the raw grid's
+      aggregate coverage, and not by analogy to a network that seemed similar.
+    - For a network that's fundamentally too enclosed/narrow for any of CMEMS's gridded products at
+      any resolution (Dublin Bay, Sherkin Island's own channel), no `dataset_id` fixes it — the
+      real fix would be a locally-forced coastal model built for that specific inlet, well beyond
+      what a general-purpose workflow like this one can reach for.
     - Wind tends to hold up better in these cases: CMEMS's wind product
       (`cmems_obs-wind_glo_phy_my_l4_0.125deg_PT1H`) is a satellite-derived, gap-filled L4 product
       with less aggressive coastal masking than the physics/wave models.

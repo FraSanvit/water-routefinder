@@ -1,9 +1,18 @@
-"""One overview PNG per network: ``results/{network}/{network}_diag_plot.png``.
+"""Two diagnostic PNGs per network.
 
-Three panels, sharing one colour per route between the first two: the route map (dashed lines,
-optionally over a real land basemap), per-variable conditions over time (one line per route, mean
-across its vertices), and a data-quality summary (NaN fraction / vertex count per route, as
-horizontal bars).
+``{network}_diag_plot.png`` (``make_diag_plot``): three panels, sharing one colour per route
+between the first two -- the route map (dashed lines, optionally over a real land basemap),
+per-variable conditions over time (one line per route, mean across its vertices), and a
+data-quality summary (NaN fraction / vertex count per route, as horizontal bars). Reads the
+already-sampled ``conditions.parquet`` (one row per route vertex per timestep).
+
+``{network}_availability_map.png`` (``make_availability_plot``): one map per variable (magnitude
++ direction, for each of wind/current/wave), coloured by that grid cell's time-mean value, with
+the routes overlaid -- a masked (permanently land-blocked) grid cell renders as transparent, so a
+route crossing a gap in the colour is directly visible. Reads the harmonised *grid*
+(``resources/automatic/{network}/grid.nc``), not the sampled table -- the whole point is to see
+the source data's own spatial footprint before route-sampling, not what got interpolated onto
+the route.
 """
 
 from __future__ import annotations
@@ -16,10 +25,11 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
+import xarray as xr
 
 from water_routefinder.io import load_network
 from water_routefinder.network import Network
-from water_routefinder.schema import VARIABLES
+from water_routefinder.schema import VARIABLE_UNITS, VARIABLES
 
 
 def make_diag_plot(
@@ -58,6 +68,122 @@ def make_diag_plot(
     fig.savefig(out_png, dpi=110)
     plt.close(fig)
     return out_png
+
+
+#: Which of the 7 contract variables get a panel here, and how they're paired up -- one row per
+#: family (wind, current, wave), magnitude next to its direction. Deliberately excludes
+#: wave_period: it's a real magnitude field, but it isn't "wave, wind, current... and direction",
+#: and folding it in would break the tidy 3x2 grid for no real gain (its own availability already
+#: matches wave_height's -- both come from the same source dataset).
+_AVAILABILITY_LAYOUT: tuple[tuple[str, str], ...] = (
+    ("wind_speed", "wind_from_direction"),
+    ("current_speed", "current_to_direction"),
+    ("wave_height", "wave_from_direction"),
+)
+
+#: Direction variables need a cyclic colormap -- a sequential one (e.g. viridis) on 0-360 degrees
+#: shows a false discontinuity at the wrap-around, since 359 deg and 1 deg are nearly the same
+#: direction but would land at opposite ends of the colour scale.
+_DIRECTION_VARS = frozenset(dir_var for _, dir_var in _AVAILABILITY_LAYOUT)
+
+
+def make_availability_plot(
+    bundle_dir: str | Path,
+    grid_path: str | Path,
+    out_png: str | Path,
+    *,
+    title: str | None = None,
+    basemap: bool = True,
+) -> Path:
+    """Build and save the data-availability figure; returns the path written.
+
+    One map per variable in ``_AVAILABILITY_LAYOUT``, coloured by that grid cell's time-mean
+    value (``skipna``): a cell that's masked (NaN) at every timestep -- the common case all
+    through this project's coastal-resolution investigations -- stays NaN in the mean too, so it
+    renders as a transparent gap the route can be seen crossing, exactly the same as it would from
+    any single snapshot. The mean is used anyway, not a single timestep, because it's strictly
+    more informative for the cells that *do* have data (a representative value, not one arbitrary
+    hour's noise) at no cost to the availability check itself.
+
+    ``bundle_dir`` supplies the network geometry (``bundle_dir/network/``); ``grid_path`` is the
+    harmonised grid (``resources/automatic/{network}/grid.nc``) -- a different input than
+    ``make_diag_plot``, which reads the already-sampled table instead.
+    """
+    bundle_dir = Path(bundle_dir)
+    out_png = Path(out_png)
+    network = load_network(bundle_dir / "network")
+
+    with xr.open_dataset(grid_path) as grid:
+        fig = plt.figure(figsize=(11, 15), constrained_layout=True)
+        gs = fig.add_gridspec(len(_AVAILABILITY_LAYOUT), 2)
+        for row, pair in enumerate(_AVAILABILITY_LAYOUT):
+            for col, var in enumerate(pair):
+                _plot_availability_panel(fig.add_subplot(gs[row, col]), grid, var, network, basemap=basemap)
+        fig.suptitle(title or f"{bundle_dir.name} — data availability", fontsize=14)
+
+        out_png.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(out_png, dpi=110)
+        plt.close(fig)
+    return out_png
+
+
+def _plot_availability_panel(ax, grid: xr.Dataset, var: str, network: Network, *, basemap: bool):
+    """One variable's time-mean value, per grid cell, as coloured pixels -- plus the same
+    basemap/route/harbour overlay as `_plot_map`, reusing its exact framing logic so this panel is
+    just as correctly proportioned regardless of the network's shape. Returns the `QuadMesh`
+    (rather than leaving callers to fish it out of `ax.collections`, which also picks up the
+    harbour markers plotted afterwards)."""
+    # Pin the box's physical shape up front, before anything is drawn on it: with 6 of these
+    # panels sharing one constrained_layout solve (unlike the single-map main diag plot), each
+    # variable's colorbar has different tick-label text (e.g. "4" vs "0.10"), and left free that
+    # nudges its own column narrower/wider than its siblings, and a basemap's autoscale can do the
+    # same to row heights -- both were observed to make same-network panels visibly different
+    # sizes despite identical data. `set_box_aspect` is layout-engine-aware (unlike
+    # `set_aspect(..., adjustable="box")`, which only reacts to data limits): it tells
+    # constrained_layout up front "this box has exactly this shape," so sibling decorations can no
+    # longer perturb it.
+    ax.set_box_aspect(1 / _panel_aspect_ratio(ax))
+
+    if basemap:
+        _add_basemap(ax)
+
+    values = grid[var].mean(dim="time", skipna=True)
+    cmap = "twilight" if var in _DIRECTION_VARS else "viridis"
+    # shading="auto": picks the right convention automatically for 1-D cell-centre coordinates
+    # (this grid's `latitude`/`longitude`) vs. cell-edge ones -- no need to hand-compute edges.
+    # alpha < 1: lets the basemap's coastline show through the coloured cells, so land that
+    # happens to fall *inside* a coarse, mostly-water grid cell is still visible under the colour,
+    # not just at the fully-transparent (NaN) gaps.
+    mesh = ax.pcolormesh(grid["longitude"], grid["latitude"], values, shading="auto", cmap=cmap, alpha=0.7, zorder=1)
+    ax.figure.colorbar(mesh, ax=ax, fraction=0.046, pad=0.04, label=VARIABLE_UNITS.get(var, ""))
+
+    # A single bold colour, not one per route (unlike `_plot_map`'s legend): several thin
+    # differently-coloured lines would be hard to read against a full-colourmap background: the
+    # point here is "does the route cross a gap", not "which route is which".
+    for route in network.routes:
+        lats = [p.lat for p in route.path]
+        lons = [p.lon for p in route.path]
+        ax.plot(lons, lats, linestyle="--", color="black", linewidth=1.2, zorder=5)
+    for h in network.harbours:
+        ax.scatter([h.lon], [h.lat], marker="s", s=30, color="black", zorder=6)
+
+    ax.set_title(var, fontsize=9)
+    ax.tick_params(labelsize=6)
+
+    lon_min, lon_max, lat_min, lat_max = _network_extent(network)
+    lon_pad = max((lon_max - lon_min) * _MAP_MARGIN_FRACTION, _MAP_MIN_MARGIN_DEG)
+    lat_pad = max((lat_max - lat_min) * _MAP_MARGIN_FRACTION, _MAP_MIN_MARGIN_DEG)
+    lon_min, lon_max = lon_min - lon_pad, lon_max + lon_pad
+    lat_min, lat_max = lat_min - lat_pad, lat_max + lat_pad
+    lon_min, lon_max, lat_min, lat_max = _fit_to_panel_aspect(ax, lon_min, lon_max, lat_min, lat_max)
+    ax.set_xlim(lon_min, lon_max)
+    ax.set_ylim(lat_min, lat_max)
+    # No `set_aspect(..., adjustable="box")` here (unlike `_plot_map`): `set_box_aspect` above
+    # already owns the box's physical shape, and the xlim/ylim just set already match it (same
+    # `_fit_to_panel_aspect` math `_plot_map` uses) -- stacking the two box-shape mechanisms would
+    # be redundant at best, and risks re-introducing the exact per-panel size drift this is meant
+    # to fix.
+    return mesh
 
 
 #: Land polygons for the basemap: Natural Earth 1:10m "land" (public domain), clipped to Europe

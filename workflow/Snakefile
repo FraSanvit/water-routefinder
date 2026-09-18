@@ -45,3 +45,4 @@ rule all:
     input:
         expand("results/{network}/validation.txt", network=NETWORKS),
         expand("results/{network}/{network}_diag_plot.png", network=NETWORKS),
+        expand("results/{network}/{network}_availability_map.png", network=NETWORKS),
