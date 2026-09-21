@@ -24,7 +24,7 @@ For every network you point it at, `water-routefinder` writes:
   conditions over time, and a data-quality summary.
 
 <figure markdown>
-![Example diagnostic plot: a route map over real coastlines, with harbours marked](assets/diag_plot_example.png)
+![Example diagnostic plot: a route map over real coastlines, with harbours marked](figures/example_route.png)
 <figcaption>The route-map panel of a diagnostic plot, generated entirely offline from a bundled
 Natural Earth extract — see <a href="architecture/#basemap">Architecture → basemap</a>.</figcaption>
 </figure>
