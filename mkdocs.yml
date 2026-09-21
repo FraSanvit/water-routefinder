@@ -43,6 +43,8 @@ theme:
 
 markdown_extensions:
   - admonition
+  - attr_list # `![alt](img){ width="..." }`
+  - md_in_html # Markdown inside raw HTML blocks, e.g. <figure markdown="span"> on the home page
   - tables
   - pymdownx.details
   - pymdownx.superfences

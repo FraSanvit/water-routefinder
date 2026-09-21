@@ -22,11 +22,16 @@ For every network you point it at, `water-routefinder` writes:
 - `validation.txt` — `OK`, or every contract violation found.
 - `{network}_diag_plot.png` — a route map (real coastlines, rendered fully offline), per-variable
   conditions over time, and a data-quality summary.
+- `{network}_availability_map.png` — one map per variable (wind, current, wave × speed/direction)
+  of the source grid's own coverage, with the route overlaid, so a route crossing a gap in the
+  data is directly visible.
 
-<figure markdown>
-![Example diagnostic plot: a route map over real coastlines, with harbours marked](figures/example_route.png)
-<figcaption>The route-map panel of a diagnostic plot, generated entirely offline from a bundled
-Natural Earth extract — see <a href="architecture/#basemap">Architecture → basemap</a>.</figcaption>
+<figure markdown="span">
+  ![Data availability map for the Rosslare–Roscoff example: time-mean wind, current and wave fields on the source grid, with the route overlaid](figures/example_route.png){ width="900" }
+  <figcaption>The availability map for the Rosslare–Roscoff example. Cells the source model masks
+  (land, coast) are transparent, so the coastline shows through; the dashed line is the route.
+  Rendered entirely offline over a bundled Natural Earth basemap — see
+  <a href="architecture/#basemap">Architecture → basemap</a>.</figcaption>
 </figure>
 
 ## Where to go next
