@@ -44,6 +44,7 @@ results/dublin-bay/
   environment/{conditions.parquet, conditions.meta.yaml}
   validation.txt
   dublin-bay_diag_plot.png
+  dublin-bay_availability_map.png
 ```
 
 ## Build your own network
@@ -58,16 +59,20 @@ Put a network directory under `resources/user/<name>/`:
 Every route's path must start and end within 2 km of its origin/destination harbour, or the whole
 network is rejected with a clear error — see [Architecture](architecture.md#network-validation).
 
-Then edit `config/config.yaml` — at minimum set `networks` to your network's name and a `time`
-window — and run:
+There is **one** configuration file, `config/config.yaml`, and it applies to every network — you
+don't write a config per network. Set the `time` window (and anything else) there once, then pick
+which network to build:
 
 ```sh
-pixi run snakemake --snakefile workflow/Snakefile --configfile config/config.yaml --cores 1
+pixi run run-network my-network                  # build resources/user/my-network/
+pixi run run-network my-network,another-network  # or several at once, same config
+pixi run dry-run-network my-network              # just print the plan: no download, no credentials
 ```
 
-(`pixi run run-demo` is exactly this command, pinned to the shipped example config.) See
-[Configuration](configuration.md) for every key, including per-family provider choice
-(`cmems`/`era5`) and the diagnostic plot's basemap toggle.
+(`config/config.yaml` doesn't name a network, so you never edit it to switch networks.
+`pixi run run-demo` builds the shipped example, `dublin-bay`; `pixi run run-all` builds every
+folder under `resources/user/`.) See [Configuration](configuration.md) for every key, including
+per-family provider choice (`cmems`/`era5`) and the diagnostic plot's basemap toggle.
 
 ## Run the tests
 

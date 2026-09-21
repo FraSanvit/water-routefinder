@@ -8,7 +8,7 @@
 
 | key | meaning |
 |---|---|
-| `networks` | Which `resources/user/<name>/` directories to build. Omit or leave empty to build every network found there. |
+| `networks` | *Not set in the shipped file* — which network(s) to build is chosen per run, see [One config, many networks](#one-config-many-networks). If set (or empty/omitted) it lists the `resources/user/<name>/` directories to build; omitted means every one found there. |
 | `time.start` / `time.end` | The window to fetch/build, as `YYYY-MM-DD`. `end` is exclusive. |
 | `sample.densify_km` | Target spacing (km) to densify each route to before sampling, so bilinear interpolation is fine enough. `null` disables densification (samples exactly the input vertices). |
 | `harmonise.target_step` | Common time step after harmonisation, e.g. `"1h"`, `"3h"`. |
@@ -19,11 +19,43 @@
 | `sources.<family>.dataset_id` | The provider's product id. `null` uses the default in `workflow/internal/settings.yaml`. |
 | `sources.<family>.variables` | The provider's native variable names to request (each provider's source module converts them to the standard names in the [bundle contract](contract.md)). |
 
-## Multiple networks / providers per family
+## One config, many networks
+
+`config/config.yaml` is the single configuration for every network — there are no per-network
+config files, and it doesn't even name a network. The time window, densification, bbox margin,
+providers and datasets all apply to each network you build; the only thing that differs between
+runs is *which* network(s) to build, and that is a command-line choice, not a config file:
+
+```sh
+pixi run run-network sherkin-island                # one network
+pixi run run-network sherkin-island,aran-islands   # several, built in parallel where the DAG allows
+pixi run run-demo                                  # the shipped example, dublin-bay
+pixi run run-all                                   # every folder under resources/user/
+pixi run dry-run-network sherkin-island            # print the plan only (no download, no credentials)
+pixi run dry-run-all                               # ...for every network
+```
+
+`run-network` and `run-demo` run `snakemake --snakefile workflow/Snakefile --cores 1 --config
+"networks=[...]"`: the Snakefile always loads `config/config.yaml`, and `--config` adds just the
+`networks` key. `run-all` passes no `networks` at all, which means "every folder under
+`resources/user/` with a `routes.geojson`" — mind that this includes any half-finished network you
+have lying around there. You can also put `networks: [...]` in the file yourself; it works the same
+way, it just makes the file network-specific again.
+
+The trade-off: because one value applies to all, a setting that one network needs applies to the
+rest too. The clearest case is `bbox.margin_deg`, set to `0.5` because Sherkin Island and Dublin
+Bay need it (see [Limitations](#limitations-best-practices)); open-water networks such as
+Rosslare–Roscoff don't, and just download a little more. If a network ever needs a genuinely
+different setting, edit `config/config.yaml` for that run rather than adding a second config
+file. (`--config` is only dependable for top-level keys such as `networks`: nested keys like
+`bbox.margin_deg` can't be set that way — dotted names are rejected, and a nested number arrives
+as a string and fails validation.)
+
+## Multiple providers per family
 
 `provider` is chosen independently per family, so e.g. wind can come from ERA5 while current and
-wave come from CMEMS. `networks` can list several route sets — each gets its own
-`results/<network>/` bundle and diagnostic plot, built in parallel where the DAG allows it.
+wave come from CMEMS. When several networks are built in one run, each gets its own
+`results/<network>/` bundle and diagnostic plots.
 
 ## Credentials
 
@@ -102,9 +134,10 @@ it, or put it anywhere other than `.env` (gitignored) or your own shell/CI secre
     having long open-water legs too, every route got worse — its routes apparently hug the
     harbour-end coastlines (Rossaveal, Doolin, the island piers) closely enough to hit the same
     masking effect as Sherkin Island anyway. **"Looks like open water" is not a reliable predictor
-    without actually checking** — the example networks are left on the global default throughout
-    (including Rosslare-Roscoff, despite its real improvement, kept for consistency across the
-    four — see that network's `config/rosslare-roscoff.yaml` if you want to reconsider it).
+    without actually checking** — every example network is built with the global default
+    (including Rosslare-Roscoff, despite its real improvement: with a single shared config, a
+    dataset choice that helps one network and hurts others isn't worth adopting; set
+    `sources.<family>.dataset_id` in `config/config.yaml` if you want it for a run of your own).
 
     **Best practices:**
 
@@ -129,9 +162,11 @@ it, or put it anywhere other than `.env` (gitignored) or your own shell/CI secre
 
 ## Example configuration
 
-```yaml
-networks: ["dublin-bay"]
+The shape of `config/config.yaml` (values here are just illustrative — the shipped file uses a
+wider `bbox.margin_deg` and a longer window; note there is no `networks`, see
+[above](#one-config-many-networks)):
 
+```yaml
 time:
   start: "2024-01-01"
   end: "2024-01-08" # exclusive -- 7 days, hourly
@@ -143,7 +178,7 @@ harmonise:
   target_step: "1h"
 
 bbox:
-  margin_deg: 0.1
+  margin_deg: 0.5
 
 cache_dir: "resources/automatic/.cache"
 

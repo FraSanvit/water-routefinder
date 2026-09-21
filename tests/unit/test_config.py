@@ -47,5 +47,8 @@ def test_end_before_start_is_rejected():
 
 def test_load_config_reads_the_shipped_example(repo_root):
     cfg = load_config(repo_root / "config" / "config.yaml")
-    assert cfg.networks == ("dublin-bay",)
+    # The shipped config deliberately doesn't say which network to build (one config for all of
+    # them; `run-network`/`run-demo` choose per run) -- empty means "every folder under
+    # resources/user/".
+    assert cfg.networks == ()
     assert cfg.sources["current"].provider == "cmems"

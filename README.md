@@ -31,7 +31,13 @@ pixi run dry-run              # sanity-check the DAG without running anything (n
 cp .env.example .env         # then fill in CMEMS_USERNAME/CMEMS_PASSWORD (see the docs
                                #   for alternatives, incl. `copernicusmarine login`)
 pixi run run-demo            # builds resources/user/dublin-bay -> results/dublin-bay/
+
+pixi run run-network sherkin-island   # any other network under resources/user/ -- same config
+pixi run run-all                      # or every network under resources/user/
 ```
+
+There is one config, `config/config.yaml`, for every network: no config file per network, and it
+doesn't name a network either. `run-network <name>[,<name>...]` only chooses *which* to build.
 
 `run-demo` produces, from the example network under `resources/user/dublin-bay/`:
 

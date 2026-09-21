@@ -19,5 +19,5 @@ else:
 if not NETWORKS:
     raise ValueError(
         "no networks to build: put routes.geojson + harbours.csv under "
-        "resources/user/<name>/, or set config.networks"
+        "resources/user/<name>/, or pass --config \"networks=[<name>]\""
     )

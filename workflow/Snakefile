@@ -2,8 +2,14 @@
 
 Run from the repo root (the pixi tasks do this for you):
 
-    pixi run run-demo     # build resources/user/dublin-bay with config/config.yaml
-    pixi run dry-run       # same, but -n
+    pixi run run-demo                 # build the example network, resources/user/dublin-bay
+    pixi run dry-run                  # same, but -n
+    pixi run run-network <name>[,...]  # build other networks with the same config
+    pixi run run-all                  # every folder under resources/user/
+
+There is one config (config/config.yaml, loaded below) for every network, and it doesn't name a
+network: the tasks above add just a `networks` key (`--config "networks=[...]"`), and with none
+every folder under resources/user/ is built.
 
 Unlike a modelblocks-org-style embeddable module, this workflow is a standalone deliverable:
 `rule all` actually builds the bundle(s) rather than refusing to run outside a parent workflow.

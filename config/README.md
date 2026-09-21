@@ -7,7 +7,7 @@ against [`water_routefinder.config.WorkflowConfig`](../src/water_routefinder/con
 
 | key | meaning |
 |---|---|
-| `networks` | Which `resources/user/<name>/` directories to build. Omit or leave empty to build every network found there. |
+| `networks` | *Not set in the shipped file* — which network(s) to build is chosen per run (see below). If set (or empty/omitted) it lists the `resources/user/<name>/` directories to build; omitted means every one found there. |
 | `time.start` / `time.end` | The window to fetch/build, as `YYYY-MM-DD`. `end` is exclusive. |
 | `sample.densify_km` | Target spacing (km) to densify each route to before sampling, so bilinear interpolation is fine enough. `null` disables densification (samples exactly the input vertices). |
 | `harmonise.target_step` | Common time step after harmonisation, e.g. `"1h"`, `"3h"`. |
@@ -18,11 +18,34 @@ against [`water_routefinder.config.WorkflowConfig`](../src/water_routefinder/con
 | `sources.<family>.dataset_id` | The provider's product id. `null` uses the default in `workflow/internal/settings.yaml`. |
 | `sources.<family>.variables` | The provider's native variable names to request (each provider's source module converts them to the standard names in `docs/contract.md`). |
 
-## Multiple networks / providers per family
+## One config, many networks
+
+`config.yaml` is the single configuration for every network — there are no per-network config
+files, and it doesn't name a network either. Everything in it (time window, densification, bbox
+margin, providers, datasets) applies to each network you build; which network(s) to build is a
+command-line choice:
+
+```sh
+pixi run run-network sherkin-island                # one network
+pixi run run-network sherkin-island,aran-islands   # several, built in parallel where the DAG allows
+pixi run run-demo                                  # the shipped example, dublin-bay
+pixi run run-all                                   # every folder under resources/user/
+pixi run dry-run-network sherkin-island            # print the plan only (no download, no credentials)
+pixi run dry-run-all                               # ...for every network
+```
+
+`run-network`/`run-demo` run `snakemake --snakefile workflow/Snakefile --cores 1 --config
+"networks=[...]"`: the Snakefile always loads `config/config.yaml`, and `--config` adds just the
+`networks` key. `run-all` passes none, which means every folder under `resources/user/` with a
+`routes.geojson`. (`--config` is only dependable for top-level keys like `networks`; to change a
+nested setting such as `bbox.margin_deg`, edit `config.yaml`.) See
+[docs/configuration.md](../docs/configuration.md) for the trade-off this implies.
+
+## Multiple providers per family
 
 `provider` is chosen independently per family, so e.g. wind can come from ERA5 while current and
-wave come from CMEMS. `networks` can list several route sets — each gets its own
-`results/<network>/` bundle and diagnostic plot, built in parallel where the DAG allows it.
+wave come from CMEMS. When several networks are built in one run, each gets its own
+`results/<network>/` bundle and diagnostic plots.
 
 ## Credentials
 

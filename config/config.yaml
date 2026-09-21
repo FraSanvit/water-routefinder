@@ -1,12 +1,18 @@
-# A minimal example configuration -- builds the resources/user/dublin-bay example from live
-# Copernicus Marine data. Needs CMEMS_USERNAME/CMEMS_PASSWORD in the environment (see
-# config/README.md). See docs/contract.md for the bundle this produces.
-
-networks: ["dublin-bay"] # subdirs of resources/user/ to build; omit/empty = discover all
+# The one configuration every network is built with: every key below applies to each network.
+# It deliberately says nothing about *which* network to build -- that is chosen per run:
+#     pixi run run-network sherkin-island            # one network
+#     pixi run run-network sherkin-island,aran-islands  # several
+#     pixi run run-demo                              # the shipped example, dublin-bay
+#     pixi run run-all                               # every folder under resources/user/
+# (under the hood: `snakemake ... --config "networks=[...]"`; with no `networks` at all,
+# Snakemake builds every folder under resources/user/ that has a routes.geojson.)
+#
+# Needs CMEMS_USERNAME/CMEMS_PASSWORD in the environment (see config/README.md). See
+# docs/contract.md for the bundle this produces.
 
 time:
   start: "2024-01-01"
-  end: "2024-01-08" # exclusive -- this window is 7 days, hourly
+  end: "2024-12-31" # exclusive -- this window is 365 days, hourly (a longer window = a longer download)
 
 sample:
   densify_km: 1.5 # target vertex spacing after densification (contract recommends ~1-2 km)
@@ -15,11 +21,13 @@ harmonise:
   target_step: "1h"
 
 bbox:
-  # Dublin Bay is a small, semi-enclosed bay -- a narrow margin only reaches a handful of the
-  # ~9km-resolution CMEMS current/wave grid cells, most of which the model land-masks (checked
-  # directly: with margin_deg 0.1, current/wave were 100% NaN on every route -- see the
-  # sherkin-island network for the same issue and fix). A wider margin pulls in open-water cells
-  # further offshore so harmonise's bilinear interpolation has valid neighbours to work with.
+  # Wide on purpose. Networks in tight channels or small enclosed bays (Sherkin Island, Dublin Bay)
+  # only reach a handful of the ~9km-resolution CMEMS current/wave grid cells, most of which the
+  # model land-masks -- with a margin of 0.1 their current/wave came back 100% NaN on every route.
+  # A wider margin pulls in open-water cells further offshore so harmonise's bilinear
+  # interpolation has valid neighbours. The open-water networks (Rosslare-Roscoff, Aran Islands)
+  # don't need it, and just download a little more. See docs/configuration.md ("Limitations")
+  # for the full story, including why a finer-resolution dataset_id doesn't fix this.
   margin_deg: 0.5 # degrees added around the network's own extent before fetching
 
 cache_dir: "resources/automatic/.cache"

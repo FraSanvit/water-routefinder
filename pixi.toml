@@ -50,9 +50,24 @@ test-integration-live = "pytest -q -m integration"
 # Same as `test`, plus a branch-coverage report (coverage.xml, for Codecov -- see .github/workflows/ci.yml).
 test-cov = "pytest -q -m 'not integration' --cov=water_routefinder --cov-branch --cov-report=xml --cov-report=term-missing"
 lint = "ruff check ."
-# Build the example network end to end (needs CMEMS_USERNAME/CMEMS_PASSWORD -- see config/README.md).
-run-demo = "snakemake --snakefile workflow/Snakefile --configfile config/config.yaml --cores 1"
-dry-run = "snakemake --snakefile workflow/Snakefile --configfile config/config.yaml --cores 1 -n"
+# The Snakefile loads config/config.yaml itself -- the one config every network is built with. It
+# doesn't say which network to build, so the tasks below choose (`--config "networks=[...]"`).
+# Build the shipped example network end to end; needs CMEMS_USERNAME/CMEMS_PASSWORD -- see
+# config/README.md. (`dry-run` is what CI runs, so it stays pinned to the example.)
+run-demo = 'snakemake --snakefile workflow/Snakefile --cores 1 --config "networks=[dublin-bay]"'
+dry-run = 'snakemake --snakefile workflow/Snakefile --cores 1 -n --config "networks=[dublin-bay]"'
+# Every folder under resources/user/ that has a routes.geojson (no `networks` override at all).
+run-all = "snakemake --snakefile workflow/Snakefile --cores 1"
+dry-run-all = "snakemake --snakefile workflow/Snakefile --cores 1 -n"
+# Build one or more other networks with the same config, e.g. `pixi run run-network sherkin-island`
+# or `pixi run run-network sherkin-island,aran-islands`. Only `networks` is overridden.
+run-network = { cmd = 'snakemake --snakefile workflow/Snakefile --cores 1 --config "networks=[{{ network }}]"', args = [
+  "network",
+] }
+# Same, but only prints the DAG (-n): nothing is downloaded, no credentials needed.
+dry-run-network = { cmd = 'snakemake --snakefile workflow/Snakefile --cores 1 -n --config "networks=[{{ network }}]"', args = [
+  "network",
+] }
 # Docs site (docs/, mkdocs.yml) -- published via .github/workflows/docs.yml on push to main.
 docs-serve = "mkdocs serve"
 docs-build = "mkdocs build --strict"

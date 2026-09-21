@@ -11,6 +11,10 @@ All notable changes to this project are documented here.
   geometry, emitting the `water-path` v0.2 environmental-conditions bundle.
 - `resources/user/dublin-bay` example network.
 - Per-network diagnostic plot (`{network}_diag_plot.png`).
+- `pixi run run-network <name>[,<name>...]` / `dry-run-network` / `run-all` / `dry-run-all`: build
+  any network(s) with the one shared `config/config.yaml`, which no longer names a network (the
+  tasks add `networks` via `--config`; with none, every folder under `resources/user/` is built).
+  The per-network example configs were removed.
 - Per-network data-availability pixel map (`{network}_availability_map.png`): the harmonised
   grid's own spatial coverage for wind/current/wave (speed + direction), before route-sampling,
   with the routes overlaid so a masked grid cell along a route is directly visible.
