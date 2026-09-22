@@ -1,5 +1,15 @@
 fail_fast: true
 
+# pre-commit.ci-specific: ignored by a local `pre-commit run`. It runs each hook in its own
+# hosted (Linux) container with no `pixi` and no access to this repo's environment, and doesn't
+# support `language: system` hooks at all -- so the four below, which only exist to work around
+# this machine's local Windows app-control block (see their own comment), would just fail there.
+# Skipping them remotely is fine: they're housekeeping (yaml/json syntax, whitespace, EOF
+# newlines), not the substantive checks -- ruff-check/ruff-format/snakefmt still run there and
+# catch anything that actually matters.
+ci:
+  skip: [check-yaml, check-json, end-of-file-fixer, trailing-whitespace]
+
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Kept in step with pixi.toml's `ruff = ">=0.6"` (currently resolving to 0.16.7) -- an older

@@ -3,6 +3,7 @@
 [![CI](https://github.com/FraSanvit/water-routefinder/actions/workflows/ci.yml/badge.svg)](https://github.com/FraSanvit/water-routefinder/actions/workflows/ci.yml)
 [![Docs](https://github.com/FraSanvit/water-routefinder/actions/workflows/docs.yml/badge.svg)](https://frasanvit.github.io/water-routefinder/)
 [![codecov](https://codecov.io/gh/FraSanvit/water-routefinder/branch/main/graph/badge.svg)](https://codecov.io/gh/FraSanvit/water-routefinder)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/FraSanvit/water-routefinder/main.svg)](https://results.pre-commit.ci/latest/github/FraSanvit/water-routefinder/main)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 Builds standardised wind, current and wave conditions along vessel routes — downloads met-ocean
