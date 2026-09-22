@@ -34,7 +34,9 @@ class BBox:
 
     @classmethod
     def from_dict(cls, d: dict[str, float]) -> BBox:
-        return cls(min_lon=d["min_lon"], min_lat=d["min_lat"], max_lon=d["max_lon"], max_lat=d["max_lat"])
+        return cls(
+            min_lon=d["min_lon"], min_lat=d["min_lat"], max_lon=d["max_lon"], max_lat=d["max_lat"]
+        )
 
 
 def bbox_from_network(network: Network, margin_deg: float = 0.1) -> BBox:

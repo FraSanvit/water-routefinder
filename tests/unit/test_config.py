@@ -28,13 +28,19 @@ def test_basemap_can_be_disabled():
 
 
 def test_era5_current_is_rejected():
-    bad = {**_BASE, "sources": {**_BASE["sources"], "current": {"provider": "era5", "variables": ["x"]}}}
+    bad = {
+        **_BASE,
+        "sources": {**_BASE["sources"], "current": {"provider": "era5", "variables": ["x"]}},
+    }
     with pytest.raises(ValidationError, match="current"):
         WorkflowConfig.model_validate(bad)
 
 
 def test_unsupported_provider_is_rejected():
-    bad = {**_BASE, "sources": {**_BASE["sources"], "wind": {"provider": "mock", "variables": ["x"]}}}
+    bad = {
+        **_BASE,
+        "sources": {**_BASE["sources"], "wind": {"provider": "mock", "variables": ["x"]}},
+    }
     with pytest.raises(ValidationError):
         WorkflowConfig.model_validate(bad)
 

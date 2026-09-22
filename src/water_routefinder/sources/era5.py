@@ -79,7 +79,13 @@ def fetch(
         # longer backed by the (now-closed, about-to-be-deleted) file.
         with xr.open_dataset(target) as raw_ds:
             raw = raw_ds.load()
-    raw = raw.rename({k: v for k, v in {"latitude": "latitude", "longitude": "longitude"}.items() if k in raw.dims})
+    raw = raw.rename(
+        {
+            k: v
+            for k, v in {"latitude": "latitude", "longitude": "longitude"}.items()
+            if k in raw.dims
+        }
+    )
     return _TRANSFORMS[family](raw)
 
 

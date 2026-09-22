@@ -67,9 +67,15 @@ def test_sidecar_meta_round_trip():
     meta = SidecarMeta(
         title="t",
         network_ref=NetworkRef(routes_sha256="a" * 64, harbours_sha256="b" * 64),
-        time_coverage=TimeCoverage(start="2024-01-01T00:00:00Z", stop="2024-01-02T00:00:00Z", step="1h"),
+        time_coverage=TimeCoverage(
+            start="2024-01-01T00:00:00Z", stop="2024-01-02T00:00:00Z", step="1h"
+        ),
         variables={name: VariableMeta(units=units) for name, units in VARIABLE_UNITS.items()},
-        provenance=Provenance(sources=["mock"], builder="water-routefinder 0.0.0 abc123", created="2024-01-01T00:00:00Z"),
+        provenance=Provenance(
+            sources=["mock"],
+            builder="water-routefinder 0.0.0 abc123",
+            created="2024-01-01T00:00:00Z",
+        ),
     )
     restored = SidecarMeta.model_validate(meta.model_dump(mode="json"))
     assert restored == meta

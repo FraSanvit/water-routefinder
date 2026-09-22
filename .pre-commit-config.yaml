@@ -1,8 +1,16 @@
+fail_fast: true
+
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.9
+    # Kept in step with pixi.toml's `ruff = ">=0.6"` (currently resolving to 0.16.7) -- an older
+    # pin here can disagree with `pixi run lint` on rules that changed between versions (caught
+    # directly: v0.6.9 still flagged UP038, which later ruff dropped).
+    rev: v0.16.7
     hooks:
-      - id: ruff
+      # `ruff-check`, not the `ruff` id: from v0.16.7's own manifest, `ruff` is kept only as a
+      # "legacy alias" of `ruff-check` (same command) -- harmless either way, but this is the name
+      # going forward, and pre-commit's commit-time output otherwise prints "ruff (legacy alias)".
+      - id: ruff-check
         args: [--fix]
       - id: ruff-format
   - repo: https://github.com/snakemake/snakefmt
@@ -10,9 +18,31 @@ repos:
     hooks:
       - id: snakefmt
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    # v6.0.0, to match the pre-commit-hooks pixi dependency the `language: system` override below
+    # actually runs (bumped together from v4.6.0; see that comment for why it's overridden at all).
+    rev: v6.0.0
     hooks:
+      # language: system + entry: pixi run <tool>, on all four -- their default (a pip-installed
+      # console-script .exe in an isolated venv pre-commit builds under ~/.cache/pre-commit/) is
+      # blocked outright by this machine's Windows app-control policy (confirmed directly: even
+      # invoking that .exe by hand fails with "Access is denied" / ApplicationFailedException) --
+      # the same class of block CLAUDE.md already documents for python.exe in venv-like locations.
+      # `system` skips that and just runs `entry` directly -- the pre-commit-hooks pixi dependency
+      # puts these tools in the already-working pixi environment, but that environment is only on
+      # PATH *inside* an active `pixi run`/`pixi shell`. `git commit` (e.g. from an IDE's Git
+      # panel) doesn't run inside one, so a bare `entry: check-yaml` fails with "Executable
+      # `check-yaml` not found" there even though `pixi run pre-commit-run` looks fine (that
+      # command is itself already inside an active `pixi run`, which masks the problem). Routing
+      # through `pixi run` here makes the hook activate the environment itself either way.
       - id: check-yaml
+        language: system
+        entry: pixi run check-yaml
       - id: check-json
+        language: system
+        entry: pixi run check-json
       - id: end-of-file-fixer
+        language: system
+        entry: pixi run end-of-file-fixer
       - id: trailing-whitespace
+        language: system
+        entry: pixi run trailing-whitespace-fixer

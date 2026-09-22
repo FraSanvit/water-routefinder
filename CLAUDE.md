@@ -61,9 +61,21 @@ pixi run dry-run                 # sanity-check the DAG, no credentials needed
 pixi run lint
 
 export CMEMS_USERNAME=... CMEMS_PASSWORD=...
-pixi run run-demo               # build resources/user/dublin-bay -> results/dublin-bay/ (live CMEMS)
+pixi run run-demo               # build the shipped example, resources/user/dublin-bay (live CMEMS)
+pixi run run-network sherkin-island   # any other network(s), comma-separated -- same config
+pixi run run-all                # every folder under resources/user/
+pixi run dry-run-network sherkin-island  # print that plan only, no credentials needed
 pixi run test-integration-live  # + the end-to-end workflow test
 ```
+
+There is **one** config, `config/config.yaml`, for every network — no per-network config files,
+and it doesn't name a network: `run-demo`/`run-network` add just the `networks` key
+(`--config "networks=[...]"`), and with no `networks` at all every folder under `resources/user/`
+is built (`run-all`). Nested keys can't be overridden via `--config` (dotted names are rejected,
+nested numbers arrive as strings), so a setting one network needs (e.g. `bbox.margin_deg`) is
+edited in `config.yaml` and applies to all of them.
+`tests/integration/test_config.yaml` is a separate, deliberately pinned test fixture for the
+golden-bundle drift guard, not a second user config.
 
 `snakemake` ships from **bioconda**, not conda-forge alone — `pixi.toml`'s `channels` must include
 both, or `snakemake-minimal` resolves to nothing.

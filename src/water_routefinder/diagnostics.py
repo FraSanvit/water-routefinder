@@ -121,7 +121,9 @@ def make_availability_plot(
         gs = fig.add_gridspec(2, len(_AVAILABILITY_LAYOUT))
         for col, pair in enumerate(_AVAILABILITY_LAYOUT):
             for row, var in enumerate(pair):
-                _plot_availability_panel(fig.add_subplot(gs[row, col]), grid, var, network, basemap=basemap)
+                _plot_availability_panel(
+                    fig.add_subplot(gs[row, col]), grid, var, network, basemap=basemap
+                )
         fig.suptitle(title or f"{bundle_dir.name} — data availability", fontsize=14)
 
         out_png.parent.mkdir(parents=True, exist_ok=True)
@@ -157,7 +159,9 @@ def _plot_availability_panel(ax, grid: xr.Dataset, var: str, network: Network, *
     # alpha < 1: lets the basemap's coastline show through the coloured cells, so land that
     # happens to fall *inside* a coarse, mostly-water grid cell is still visible under the colour,
     # not just at the fully-transparent (NaN) gaps.
-    mesh = ax.pcolormesh(grid["longitude"], grid["latitude"], values, shading="auto", cmap=cmap, alpha=0.7, zorder=1)
+    mesh = ax.pcolormesh(
+        grid["longitude"], grid["latitude"], values, shading="auto", cmap=cmap, alpha=0.7, zorder=1
+    )
     ax.figure.colorbar(mesh, ax=ax, fraction=0.046, pad=0.04, label=VARIABLE_UNITS.get(var, ""))
 
     # A single bold colour, not one per route (unlike `_plot_map`'s legend): several thin
@@ -178,7 +182,9 @@ def _plot_availability_panel(ax, grid: xr.Dataset, var: str, network: Network, *
     lat_pad = max((lat_max - lat_min) * _MAP_MARGIN_FRACTION, _MAP_MIN_MARGIN_DEG)
     lon_min, lon_max = lon_min - lon_pad, lon_max + lon_pad
     lat_min, lat_max = lat_min - lat_pad, lat_max + lat_pad
-    lon_min, lon_max, lat_min, lat_max = _fit_to_panel_aspect(ax, lon_min, lon_max, lat_min, lat_max)
+    lon_min, lon_max, lat_min, lat_max = _fit_to_panel_aspect(
+        ax, lon_min, lon_max, lat_min, lat_max
+    )
     ax.set_xlim(lon_min, lon_max)
     ax.set_ylim(lat_min, lat_max)
     # No `set_aspect(..., adjustable="box")` here (unlike `_plot_map`): `set_box_aspect` above
@@ -200,7 +206,9 @@ def _plot_availability_panel(ax, grid: xr.Dataset, var: str, network: Network, *
 #: watermark image with a 200 status -- fails silently, not even an exception). None of that can
 #: happen to a bundled static file: no network call, no timeout, no rate limit, no ToS, and it's
 #: faster besides.
-_BASEMAP_PATH = Path(__file__).resolve().parents[2] / "resources" / "basemap" / "europe_land_10m.parquet"
+_BASEMAP_PATH = (
+    Path(__file__).resolve().parents[2] / "resources" / "basemap" / "europe_land_10m.parquet"
+)
 
 #: Map view padding, as a fraction of the network's own lon/lat span -- not a fixed number of
 #: degrees. A fixed margin looks fine on a small network (e.g. Dublin Bay, ~0.3 deg across) but is
@@ -229,13 +237,25 @@ def _plot_map(ax, network: Network, *, basemap: bool) -> dict[str, str]:
         lats = [p.lat for p in route.path]
         lons = [p.lon for p in route.path]
         (line,) = ax.plot(
-            lons, lats, linestyle="--", marker=".", markersize=3, linewidth=1.2, zorder=5, label=route.route_id
+            lons,
+            lats,
+            linestyle="--",
+            marker=".",
+            markersize=3,
+            linewidth=1.2,
+            zorder=5,
+            label=route.route_id,
         )
         route_colors[route.route_id] = line.get_color()
     for h in network.harbours:
         ax.scatter([h.lon], [h.lat], marker="s", s=40, color="black", zorder=6)
         ax.annotate(
-            h.harbour_id, (h.lon, h.lat), textcoords="offset points", xytext=(4, 4), fontsize=8, zorder=6
+            h.harbour_id,
+            (h.lon, h.lat),
+            textcoords="offset points",
+            xytext=(4, 4),
+            fontsize=8,
+            zorder=6,
         )
     ax.set_xlabel("longitude")
     ax.set_ylabel("latitude")
@@ -246,7 +266,9 @@ def _plot_map(ax, network: Network, *, basemap: bool) -> dict[str, str]:
     lat_pad = max((lat_max - lat_min) * _MAP_MARGIN_FRACTION, _MAP_MIN_MARGIN_DEG)
     lon_min, lon_max = lon_min - lon_pad, lon_max + lon_pad
     lat_min, lat_max = lat_min - lat_pad, lat_max + lat_pad
-    lon_min, lon_max, lat_min, lat_max = _fit_to_panel_aspect(ax, lon_min, lon_max, lat_min, lat_max)
+    lon_min, lon_max, lat_min, lat_max = _fit_to_panel_aspect(
+        ax, lon_min, lon_max, lat_min, lat_max
+    )
     ax.set_xlim(lon_min, lon_max)
     ax.set_ylim(lat_min, lat_max)
     # adjustable="box": now that the limits above are pre-padded to already match the panel's own
@@ -324,7 +346,9 @@ def _add_basemap(ax) -> None:
         # box) so the panel's box is never shrunk to match the data.
         land.plot(ax=ax, color="#e2ddd0", edgecolor="#a8a296", linewidth=0.4, zorder=0, aspect=None)
     except Exception as exc:  # noqa: BLE001 - any failure here is cosmetic, never fatal
-        warnings.warn(f"diagnostics: basemap unavailable, plotting without it ({exc})", stacklevel=2)
+        warnings.warn(
+            f"diagnostics: basemap unavailable, plotting without it ({exc})", stacklevel=2
+        )
 
 
 def _plot_conditions(fig, gridspec_slot, table: pd.DataFrame, route_colors: dict[str, str]) -> None:
@@ -369,7 +393,9 @@ def _plot_quality(fig, gridspec_slot, table: pd.DataFrame, network) -> None:
     per_route = table.groupby("route_id")
     route_ids = [r.route_id for r in network.routes]
     nan_frac = [
-        per_route.get_group(rid)[list(VARIABLES)].isna().mean().mean() if rid in per_route.groups else float("nan")
+        per_route.get_group(rid)[list(VARIABLES)].isna().mean().mean()
+        if rid in per_route.groups
+        else float("nan")
         for rid in route_ids
     ]
     vertex_count = [len(r.path) for r in network.routes]

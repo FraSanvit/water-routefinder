@@ -93,5 +93,7 @@ def build_sidecar_meta(
             step=target_step,
         ),
         variables=variables,
-        provenance=Provenance(sources=sources, builder=builder_string(), created=created_timestamp()),
+        provenance=Provenance(
+            sources=sources, builder=builder_string(), created=created_timestamp()
+        ),
     )

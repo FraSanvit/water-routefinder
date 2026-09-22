@@ -79,7 +79,9 @@ def harmonise(datasets: list[xr.Dataset], *, target_step: str = "1h") -> xr.Data
 def _resolution(ds: xr.Dataset, dim: str) -> float:
     values = np.asarray(ds[dim].values, dtype="float64")
     if values.size < 2:
-        raise ValueError(f"harmonise: dataset has < 2 points along {dim!r}, cannot infer resolution")
+        raise ValueError(
+            f"harmonise: dataset has < 2 points along {dim!r}, cannot infer resolution"
+        )
     return float(np.median(np.abs(np.diff(values))))
 
 

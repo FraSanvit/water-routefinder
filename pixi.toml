@@ -32,6 +32,11 @@ geopandas = ">=1.0"
 pyogrio = ">=0.9"
 mkdocs-material = ">=9.5"
 pytest-cov = ">=5"
+pre-commit = ">=3.7"
+# So `language: system` in .pre-commit-config.yaml can run check-yaml/check-json/etc. from this
+# already-working pixi env, instead of pre-commit building its own isolated one -- see the comment
+# there for why.
+pre-commit-hooks = ">=6.0"
 
 # Not (reliably) on conda-forge / simplest kept as pip installs, including the package itself
 # (editable, so `import water_routefinder` resolves to src/water_routefinder without a build step).
@@ -50,6 +55,13 @@ test-integration-live = "pytest -q -m integration"
 # Same as `test`, plus a branch-coverage report (coverage.xml, for Codecov -- see .github/workflows/ci.yml).
 test-cov = "pytest -q -m 'not integration' --cov=water_routefinder --cov-branch --cov-report=xml --cov-report=term-missing"
 lint = "ruff check ."
+# One-time per clone: installs the git hook so .pre-commit-config.yaml's checks (ruff, ruff-format,
+# snakefmt, yaml/json/whitespace housekeeping) run automatically on `git commit`.
+pre-commit-install = "pre-commit install"
+# Run every hook over the whole tree (not just staged files) -- e.g. after editing the config, or
+# in CI. `--fix`/ruff-format and end-of-file-fixer rewrite files in place on the first run; run it
+# again to confirm a clean pass.
+pre-commit-run = "pre-commit run --all-files"
 # The Snakefile loads config/config.yaml itself -- the one config every network is built with. It
 # doesn't say which network to build, so the tasks below choose (`--config "networks=[...]"`).
 # Build the shipped example network end to end; needs CMEMS_USERNAME/CMEMS_PASSWORD -- see

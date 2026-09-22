@@ -59,7 +59,9 @@ def _stub_open_dataset(monkeypatch, result_ds, captured_kwargs: dict):
         captured_kwargs.update(kwargs)
         return result_ds
 
-    monkeypatch.setitem(sys.modules, "copernicusmarine", SimpleNamespace(open_dataset=fake_open_dataset))
+    monkeypatch.setitem(
+        sys.modules, "copernicusmarine", SimpleNamespace(open_dataset=fake_open_dataset)
+    )
 
 
 def test_fetch_pins_the_surface_depth_for_current(monkeypatch):
@@ -68,7 +70,9 @@ def test_fetch_pins_the_surface_depth_for_current(monkeypatch):
     captured: dict = {}
     _stub_open_dataset(monkeypatch, _native_dataset(uo=1.0, vo=0.0), captured)
 
-    cmems.fetch(family="current", variables=("uo", "vo"), bbox=BBOX, start="2024-01-01", end="2024-01-02")
+    cmems.fetch(
+        family="current", variables=("uo", "vo"), bbox=BBOX, start="2024-01-01", end="2024-01-02"
+    )
 
     assert captured["minimum_depth"] == cmems._CURRENT_SURFACE_DEPTH_M
     assert captured["maximum_depth"] == cmems._CURRENT_SURFACE_DEPTH_M
@@ -79,7 +83,11 @@ def test_fetch_does_not_pin_depth_for_wave_or_wind(monkeypatch):
     _stub_open_dataset(monkeypatch, _native_dataset(VHM0=1.0, VMDR=1.0, VTM10=1.0), captured)
 
     cmems.fetch(
-        family="wave", variables=("VHM0", "VMDR", "VTM10"), bbox=BBOX, start="2024-01-01", end="2024-01-02"
+        family="wave",
+        variables=("VHM0", "VMDR", "VTM10"),
+        bbox=BBOX,
+        start="2024-01-01",
+        end="2024-01-02",
     )
 
     assert "minimum_depth" not in captured
@@ -96,11 +104,18 @@ def test_fetch_squeezes_a_stray_length_one_depth_dimension(monkeypatch):
             "uo": (("depth", "time", "latitude", "longitude"), np.ones((1, 2, 2, 2))),
             "vo": (("depth", "time", "latitude", "longitude"), np.zeros((1, 2, 2, 2))),
         },
-        coords={"depth": [cmems._CURRENT_SURFACE_DEPTH_M], "time": time, "latitude": lat, "longitude": lon},
+        coords={
+            "depth": [cmems._CURRENT_SURFACE_DEPTH_M],
+            "time": time,
+            "latitude": lat,
+            "longitude": lon,
+        },
     )
     _stub_open_dataset(monkeypatch, with_depth, {})
 
-    out = cmems.fetch(family="current", variables=("uo", "vo"), bbox=BBOX, start="2024-01-01", end="2024-01-02")
+    out = cmems.fetch(
+        family="current", variables=("uo", "vo"), bbox=BBOX, start="2024-01-01", end="2024-01-02"
+    )
 
     assert "depth" not in out.dims
     assert set(out["current_speed"].dims) == {"time", "latitude", "longitude"}

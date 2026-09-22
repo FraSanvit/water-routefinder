@@ -102,7 +102,9 @@ def test_route_lines_are_dashed(expected_bundle_dir):
     network = load_network(expected_bundle_dir / "network")
     fig, ax = plt.subplots()
     _plot_map(ax, network, basemap=False)
-    route_lines = [line for line in ax.get_lines() if line.get_label() in {r.route_id for r in network.routes}]
+    route_lines = [
+        line for line in ax.get_lines() if line.get_label() in {r.route_id for r in network.routes}
+    ]
     plt.close(fig)
 
     assert route_lines
@@ -299,7 +301,9 @@ def test_availability_plot_has_one_panel_per_variable(expected_bundle_dir):
     gs = fig.add_gridspec(2, len(_AVAILABILITY_LAYOUT))
     for col, pair in enumerate(_AVAILABILITY_LAYOUT):
         for row, var in enumerate(pair):
-            _plot_availability_panel(fig.add_subplot(gs[row, col]), grid, var, network, basemap=False)
+            _plot_availability_panel(
+                fig.add_subplot(gs[row, col]), grid, var, network, basemap=False
+            )
     # Each panel is a map axes plus its own colorbar axes -- 2 axes per variable.
     n_axes = len(fig.axes)
     plt.close(fig)

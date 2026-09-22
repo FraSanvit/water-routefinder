@@ -28,12 +28,15 @@ min_version("8.0")
 # set (e.g. from CI secrets); does nothing if no .env file exists.
 load_dotenv()
 
+
 configfile: "config/config.yaml"
 
 
 validate(config, "internal/config.schema.yaml")
 
-with open(Path(workflow.basedir) / "internal" / "settings.yaml", encoding="utf-8") as _fh:
+with open(
+    Path(workflow.basedir) / "internal" / "settings.yaml", encoding="utf-8"
+) as _fh:
     internal = yaml.safe_load(_fh)
 
 

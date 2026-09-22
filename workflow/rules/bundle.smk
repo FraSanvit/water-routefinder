@@ -8,7 +8,8 @@ rule bundle:
         title=lambda wc: f"Environmental conditions - {wc.network}",
         target_step=config.get("harmonise", {}).get("target_step", "1h"),
         sources=lambda wc: [
-            f"{family}:{config['sources'][family]['provider']}" for family in ("current", "wave", "wind")
+            f"{family}:{config['sources'][family]['provider']}"
+            for family in ("current", "wave", "wind")
         ],
     input:
         table="resources/automatic/{network}/table.parquet",

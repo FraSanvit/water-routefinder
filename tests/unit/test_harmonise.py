@@ -46,7 +46,12 @@ def test_merges_onto_finest_grid_resolution():
     )
     coarse["wind_speed"].attrs["units"] = "m s-1"
     fine = xr.Dataset(
-        {"current_speed": (("time", "latitude", "longitude"), np.zeros((2, 5, 5), dtype="float32"))},
+        {
+            "current_speed": (
+                ("time", "latitude", "longitude"),
+                np.zeros((2, 5, 5), dtype="float32"),
+            )
+        },
         coords={
             "time": pd.date_range("2024-01-01", periods=2, freq="1h"),
             "latitude": np.linspace(53.2, 53.4, 5),
@@ -87,7 +92,12 @@ def test_narrower_source_is_not_extrapolated_to_nan():
     )
     wide["current_speed"].attrs["units"] = "m s-1"
     narrow = xr.Dataset(
-        {"wind_speed": (("time", "latitude", "longitude"), np.full((2, 2, 2), 5.0, dtype="float32"))},
+        {
+            "wind_speed": (
+                ("time", "latitude", "longitude"),
+                np.full((2, 2, 2), 5.0, dtype="float32"),
+            )
+        },
         coords={
             "time": pd.date_range("2024-01-01", periods=2, freq="1h"),
             "latitude": [51.44, 51.56],

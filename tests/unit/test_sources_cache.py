@@ -8,7 +8,14 @@ from water_routefinder.sources import cache
 from water_routefinder.sources.base import BBox
 
 BBOX = BBox(min_lon=-6.3, min_lat=53.2, max_lon=-6.0, max_lat=53.4)
-_KEY_KWARGS = dict(provider="cmems", dataset_id="ds-1", variables=("uo", "vo"), bbox=BBOX, start="2024-01-01", end="2024-01-02")
+_KEY_KWARGS = dict(
+    provider="cmems",
+    dataset_id="ds-1",
+    variables=("uo", "vo"),
+    bbox=BBOX,
+    start="2024-01-01",
+    end="2024-01-02",
+)
 
 
 def _dataset() -> xr.Dataset:

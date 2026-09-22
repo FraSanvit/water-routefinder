@@ -30,7 +30,9 @@ COLUMNS: dict[str, str] = {
 }
 
 #: The 7 environmental variables (excludes the 3 key columns).
-VARIABLES: tuple[str, ...] = tuple(c for c in COLUMNS if c not in ("route_id", "vertex_index", "time"))
+VARIABLES: tuple[str, ...] = tuple(
+    c for c in COLUMNS if c not in ("route_id", "vertex_index", "time")
+)
 
 #: Variable -> expected units, per the contract table.
 VARIABLE_UNITS: dict[str, str] = {

@@ -63,7 +63,9 @@ def test_no_networks_anywhere_builds_every_folder_under_resources_user(repo_root
     # The shipped config deliberately doesn't name a network, so with no override either, every
     # folder with a routes.geojson is built (this is what `pixi run run-all` does).
     assert load_config(repo_root / "config" / "config.yaml").networks == ()
-    names = sorted(p.parent.name for p in (repo_root / "resources" / "user").glob("*/routes.geojson"))
+    names = sorted(
+        p.parent.name for p in (repo_root / "resources" / "user").glob("*/routes.geojson")
+    )
     assert _SINGLE in names and _OTHER in names  # the tracked examples, at least
 
     out = _dry_run(repo_root)

@@ -13,7 +13,9 @@ import pytest
 
 from water_routefinder.io import NetworkInputError, load_network
 
-_HARBOURS = "harbour_id,name,lat,lon,country_code\nA,Harbour A,53.30,-6.25,IE\nB,Harbour B,53.35,-6.10,IE\n"
+_HARBOURS = (
+    "harbour_id,name,lat,lon,country_code\nA,Harbour A,53.30,-6.25,IE\nB,Harbour B,53.35,-6.10,IE\n"
+)
 
 
 def _routes_geojson(coordinates=None, origin="A", destination="B"):

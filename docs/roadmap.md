@@ -121,14 +121,20 @@ examples/dublin-bay/               # network + a committed demo bundle (mock sou
 ```python
 class SourceProvider(ABC):
     """One met-ocean product family, returned on its native grid with standard names/units."""
+
     name: str
-    provides: set[str]                      # e.g. {"current_speed", "current_to_direction"}
+    provides: set[str]  # e.g. {"current_speed", "current_to_direction"}
+
     def fetch(self, bbox: BBox, start: datetime, end: datetime) -> xr.Dataset: ...
+
 
 def harmonise(datasets: list[xr.Dataset], *, target_step: str = "1h") -> xr.Dataset: ...
 
-def sample(grid: xr.Dataset, network: Network, *, densify_km: float | None) \
-        -> tuple[pandas.DataFrame, Network]: ...
+
+def sample(
+    grid: xr.Dataset, network: Network, *, densify_km: float | None
+) -> tuple[pandas.DataFrame, Network]: ...
+
 
 def write_bundle(out_dir: Path, table: DataFrame, network: Network, meta: SidecarMeta) -> None: ...
 ```

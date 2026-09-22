@@ -124,9 +124,7 @@ class Network(BaseModel):
             ):
                 harbour = by_id.get(hid)
                 if harbour is None:
-                    raise ValueError(
-                        f"route {r.route_id!r}: {role} {hid!r} is not a known harbour"
-                    )
+                    raise ValueError(f"route {r.route_id!r}: {role} {hid!r} is not a known harbour")
                 gap = geodesic_km(harbour.lat, harbour.lon, vertex.lat, vertex.lon)
                 if gap > PATH_ENDPOINT_TOLERANCE_KM:
                     raise ValueError(
