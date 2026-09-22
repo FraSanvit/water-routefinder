@@ -68,7 +68,6 @@ class Route(BaseModel):
     #: Ordered polyline from origin to destination (>= 2 vertices).
     path: tuple[Point, ...] = Field(min_length=2)
     name: str | None = None
-    n_segments: int | None = Field(default=None, gt=0)
 
     @model_validator(mode="after")
     def _endpoints_distinct(self) -> Route:

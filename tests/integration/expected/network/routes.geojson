@@ -7,8 +7,7 @@
         "route_id": "DCC-DUN",
         "origin": "DCC",
         "destination": "DUN",
-        "name": "City Quay - Dun Laoghaire",
-        "n_segments": 12
+        "name": "City Quay - Dun Laoghaire"
       },
       "geometry": {
         "type": "LineString",

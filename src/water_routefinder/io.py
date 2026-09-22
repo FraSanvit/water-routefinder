@@ -14,10 +14,11 @@ Expected layout (file names overridable)::
 
     {
       "type": "Feature",
-      "properties": {"route_id": "R1", "origin": "H1", "destination": "H2",
-                     "name": "optional", "n_segments": 20},
+      "properties": {"route_id": "R1", "origin": "H1", "destination": "H2", "name": "optional"},
       "geometry": {"type": "LineString", "coordinates": [[lon, lat], ...]}
     }
+
+Any other feature property is ignored on read and not written back.
 """
 
 from __future__ import annotations
@@ -92,8 +93,6 @@ def write_routes_geojson(network: Network, path: str | Path) -> None:
         }
         if r.name is not None:
             properties["name"] = r.name
-        if r.n_segments is not None:
-            properties["n_segments"] = r.n_segments
         features.append(
             {
                 "type": "Feature",
@@ -190,7 +189,6 @@ def _load_routes(path: Path) -> list[Route]:
                     destination=str(props["destination"]),
                     path=path_points,
                     name=(str(props["name"]) if props.get("name") else None),
-                    n_segments=props.get("n_segments"),
                 )
             )
         except ValidationError as exc:

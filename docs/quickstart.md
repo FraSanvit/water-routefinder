@@ -53,7 +53,7 @@ Put a network directory under `resources/user/<name>/`:
 
 - **`routes.geojson`** — a GeoJSON `FeatureCollection` of route `LineString`s (see
   `resources/user/dublin-bay/routes.geojson` for the exact shape: `route_id`, `origin`,
-  `destination` properties per feature).
+  `destination` properties per feature, plus an optional `name`). Any other property is ignored.
 - **`harbours.csv`** — `harbour_id,name,lat,lon[,country_code]`.
 
 Every route's path must start and end within 2 km of its origin/destination harbour, or the whole

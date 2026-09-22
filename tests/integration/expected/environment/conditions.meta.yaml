@@ -2,7 +2,7 @@ waterpath_env_schema: '0.2'
 crs: EPSG:4326
 title: Environmental conditions - dublin-bay
 network_ref:
-  routes_sha256: 70bf45ae4fd3bb2bec1cc574529a1af19aa78ecf41de8c34e9b2ac3bc90f73c7
+  routes_sha256: 2cd99da3995a78d30d40a43310e214f3c7671f3fabc2dd262ced764df82eda36
   harbours_sha256: 94217f0da1e7e650c9f848d2d346727c7fdc51881881413db63597c1b3de0394
 time_coverage:
   start: '2024-01-01T00:00:00+00:00'
